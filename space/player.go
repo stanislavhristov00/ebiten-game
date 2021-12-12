@@ -2,6 +2,10 @@ package space
 
 import "github.com/hajimehoshi/ebiten/v2"
 
+const (
+	NUM_LIVES = 3
+)
+
 /*
  *	Represents a player's bullet.
  */
@@ -21,6 +25,7 @@ type Player struct {
 	bullet     *PlayerBullet
 	posX       int
 	posY       int
+	lives      int
 	isAlive    bool
 }
 
@@ -41,6 +46,7 @@ func NewPlayer(img *ebiten.Image, bulletImg *ebiten.Image, posX, posY int) *Play
 		img:     img,
 		posX:    posX,
 		posY:    posY,
+		lives:   NUM_LIVES,
 		isAlive: true,
 	}
 
@@ -85,7 +91,7 @@ func (p Player) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions, count in
 			p.bullet.bulletPosX = p.posX
 			p.bullet.bulletPosY = p.posY
 		}
-		
+
 		screen.DrawImage(p.img, op)
 
 		if p.bullet.inAir {

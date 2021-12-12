@@ -14,7 +14,6 @@ import (
 	"github.com/stanislavhristov00/Ebitentestrun/space"
 )
 
-
 const (
 	screenWidth  = 640
 	screenHeight = 480
@@ -60,8 +59,8 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	// w, y := screen.Size()
 	// fmt.Println(w, y)
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Scale(0.5, 0.5)
+	//op := &ebiten.DrawImageOptions{}
+	//op.GeoM.Scale(0.5, 0.5)
 	//op.GeoM.Translate(float64(g.count), 0)
 	// i := (g.count / 10) % frameNum
 	// sx, sy := frameOX+i*frameWidth, frameOY
@@ -74,7 +73,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// 	enemy.OffsetXY(1, 0)
 	// }
 
-	enemy.Die(screen, op)
+	//enemy.Die(screen, op)
 	//enemy.OffsetXY(1, 0)
 
 	// op2 := &ebiten.DrawImageOptions{}
@@ -94,7 +93,9 @@ func main() {
 	src := getImage("resources/1.png")
 	runnerImage = ebiten.NewImageFromImage(src)
 
-	enemy = space.NewEnemy(runnerImage, frameOX, frameOY, frameWidth, frameHeight, frameNum, 0, 0)
+	fmt.Println(runnerImage)
+
+	//enemy = space.NewEnemy(runnerImage, frameOX, frameOY, frameWidth, frameHeight, frameNum, 0, 0)
 
 	g := &Game{}
 	ebiten.SetWindowSize(640, 480)
