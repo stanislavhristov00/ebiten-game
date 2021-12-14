@@ -26,15 +26,10 @@ const (
 )
 
 var (
-	runnerImage *ebiten.Image
-	enemy       *space.Enemy
+	spriteSheet *ebiten.Image
+	player      *space.Player
+	bulletImage *ebiten.Image
 )
-
-type Sprite struct {
-	frames  []*ebiten.Image
-	frameOX uint32
-	frameOY uint32
-}
 
 type Game struct {
 	count        int
@@ -50,38 +45,32 @@ func (g *Game) Update() error {
 		ebiten.SetFullscreen(g.isFullScreen)
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		fmt.Println("S")
+	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		player.Shoot()
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+		player.OffsetXY(1, 0)
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+		player.OffsetXY(-1, 0)
 	}
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	// w, y := screen.Size()
-	// fmt.Println(w, y)
 	//op := &ebiten.DrawImageOptions{}
 	//op.GeoM.Scale(0.5, 0.5)
 	//op.GeoM.Translate(float64(g.count), 0)
 	// i := (g.count / 10) % frameNum
 	// sx, sy := frameOX+i*frameWidth, frameOY
 	// screen.DrawImage(runnerImage.SubImage(image.Rect(sx, sy, sx+frameWidth, sy+frameHeight)).(*ebiten.Image), op)
-
-	// if g.count%10 == 0 {
-	// 	enemy.Die(screen, op)
-	// } else {
-	// 	enemy.Draw(screen, op, g.count)
-	// 	enemy.OffsetXY(1, 0)
-	// }
-
-	//enemy.Die(screen, op)
-	//enemy.OffsetXY(1, 0)
-
-	// op2 := &ebiten.DrawImageOptions{}
-	// op2.GeoM.Scale(0.5, 0.5)
-	// op2.GeoM.Translate(0, 50)
-	// i2 := (g.count / 10) % frameNum
-	// sx2, sy2 := frameOX+i2*frameWidth, frameOY+frameHeight
-	// screen.DrawImage(runnerImage.SubImage(image.Rect(sx2, sy2, sx2+frameWidth, sy2+frameHeight)).(*ebiten.Image), op2)
+	//op := &ebiten.DrawImageOptions{}
+	player.Draw(screen)
+	//op.GeoM.Translate(0, 0)
+	//screen.DrawImage(bulletImage, op)
+	//op.GeoM.Reset()
 
 }
 
@@ -91,16 +80,15 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func main() {
 	src := getImage("resources/1.png")
-	runnerImage = ebiten.NewImageFromImage(src)
+	spriteSheet = ebiten.NewImageFromImage(src)
 
-	fmt.Println(runnerImage)
-
-	//enemy = space.NewEnemy(runnerImage, frameOX, frameOY, frameWidth, frameHeight, frameNum, 0, 0)
+	heroImage := spriteSheet.SubImage(image.Rect(130, 600, 220, 720)).(*ebiten.Image)
+	bulletImage = spriteSheet.SubImage(image.Rect(450, 360, 500, 480)).(*ebiten.Image)
+	player = space.NewPlayer(heroImage, bulletImage, 0, 480-90)
 
 	g := &Game{}
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("Animation (Ebiten Demo)")
-	ebiten.SetWindowResizable(true)
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}

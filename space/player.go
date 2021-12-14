@@ -1,6 +1,8 @@
 package space
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 const (
 	NUM_LIVES = 3
@@ -36,8 +38,8 @@ type Player struct {
 func NewPlayer(img *ebiten.Image, bulletImg *ebiten.Image, posX, posY int) *Player {
 	playerBullet := &PlayerBullet{
 		img:        bulletImg,
-		bulletPosX: 0,
-		bulletPosY: 0,
+		bulletPosX: posX,
+		bulletPosY: posY,
 		inAir:      false,
 	}
 
@@ -83,21 +85,27 @@ func (p *Player) OffsetXY(x, y int) {
  *	Draw the enemy animation on the context screen.
  */
 
-func (p Player) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions, count int) {
+func (p Player) Draw(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
 	if p.isAlive {
 		op.GeoM.Translate(float64(p.posX), float64(p.posY))
-
 		if !p.bullet.inAir {
-			p.bullet.bulletPosX = p.posX
+			p.bullet.bulletPosX = p.posX + 30
 			p.bullet.bulletPosY = p.posY
 		}
 
 		screen.DrawImage(p.img, op)
 
+		op.GeoM.Reset()
 		if p.bullet.inAir {
-			p.offsetBulletXY(0, -1)
+			p.offsetBulletXY(0, -3)
+			op.GeoM.Scale(0.25, 0.25)
 			op.GeoM.Translate(float64(p.bullet.bulletPosX), float64(p.bullet.bulletPosY))
 			screen.DrawImage(p.bullet.img, op)
+
+			if p.bullet.bulletPosY < 0 {
+				p.bullet.inAir = false
+			}
 		}
 	}
 }

@@ -1,0 +1,19 @@
+player -
+frameOX: 130
+frameOY: 600
+frameWidth: 90
+frameHeight: 120
+
+third row enemies - 
+frameWidth: 125
+frameHeight: 120
+
+first/second row first enemy:
+frameWidth: 140
+frameHeight: 120
+
+bullet -
+frameOX: 450
+frameOY: 360
+frameWidth: 50
+frameHeight: 120

@@ -21,14 +21,15 @@ type EnemyBullet struct {
  *	Represents a single enemy.
  */
 type Enemy struct {
-	img        []*ebiten.Image
-	imgOnDeath *ebiten.Image
-	shotImg    *ebiten.Image
-	bullet     *EnemyBullet
-	numFrames  int
-	posX       int
-	posY       int
-	isAlive    bool
+	img         []*ebiten.Image
+	imgOnDeath  *ebiten.Image
+	bullet      *EnemyBullet
+	frameWidth  int
+	frameHeight int
+	numFrames   int
+	posX        int
+	posY        int
+	isAlive     bool
 }
 
 /*
@@ -39,8 +40,8 @@ func NewEnemy(img *ebiten.Image, bulletImg *ebiten.Image, frameX, frameY, frameW
 	enemy := &Enemy{}
 	enemyBullet := &EnemyBullet{
 		img:        bulletImg,
-		bulletPosX: 0,
-		bulletPosY: 0,
+		bulletPosX: posX + frameWidth/2,
+		bulletPosY: posY + frameHeigth/2,
 		inAir:      false,
 	}
 	enemy.bullet = enemyBullet
@@ -55,6 +56,8 @@ func NewEnemy(img *ebiten.Image, bulletImg *ebiten.Image, frameX, frameY, frameW
 	enemy.posX = posX
 	enemy.posY = posY
 	enemy.isAlive = true
+	enemy.frameHeight = frameHeigth
+	enemy.frameWidth = frameWidth
 
 	return enemy
 }
@@ -79,13 +82,15 @@ func (en Enemy) Shoot(screen *ebiten.Image) {
  *	Draw the enemy animation on the context screen.
  */
 
-func (en Enemy) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions, count int) {
+func (en Enemy) Draw(screen *ebiten.Image, count int) {
+	op := &ebiten.DrawImageOptions{}
+
 	if en.isAlive {
 		i := (count / 20) % en.numFrames
 
 		if !en.bullet.inAir {
-			en.bullet.bulletPosX = en.posX
-			en.bullet.bulletPosY = en.posY
+			en.bullet.bulletPosX = en.posX + en.frameWidth/2
+			en.bullet.bulletPosY = en.posY + en.frameHeight/2
 		}
 
 		op.GeoM.Translate(float64(en.posX), float64(en.posY))
@@ -93,6 +98,8 @@ func (en Enemy) Draw(screen *ebiten.Image, op *ebiten.DrawImageOptions, count in
 
 		if en.bullet.inAir {
 			en.bulletOffsetXY(0, 1)
+			op.GeoM.Reset()
+			op.GeoM.Scale(0.25, 0.25)
 			op.GeoM.Translate(float64(en.bullet.bulletPosX), float64(en.bullet.bulletPosY))
 			screen.DrawImage(en.bullet.img, op)
 		}
