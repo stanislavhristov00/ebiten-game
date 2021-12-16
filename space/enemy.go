@@ -82,7 +82,7 @@ func (en Enemy) Shoot(screen *ebiten.Image) {
  *	Draw the enemy animation on the context screen.
  */
 
-func (en Enemy) Draw(screen *ebiten.Image, count int) {
+func (en Enemy) Draw(screen *ebiten.Image, count int, scaleX, scaleY float64) {
 	op := &ebiten.DrawImageOptions{}
 
 	if en.isAlive {
@@ -94,6 +94,7 @@ func (en Enemy) Draw(screen *ebiten.Image, count int) {
 		}
 
 		op.GeoM.Translate(float64(en.posX), float64(en.posY))
+		op.GeoM.Scale(scaleX, scaleY)
 		screen.DrawImage(en.img[i], op)
 
 		if en.bullet.inAir {
@@ -132,5 +133,35 @@ func (en Enemy) Die(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
 	if en.imgOnDeath != nil {
 		op.GeoM.Translate(float64(en.posX), float64(en.posY))
 		screen.DrawImage(en.imgOnDeath, op)
+	}
+}
+
+func (en Enemy) GetX() int {
+	return en.posX
+}
+
+func (en Enemy) GetY() int {
+	return en.posY
+}
+
+func (en Enemy) GetFrameWidth() int {
+	return en.frameWidth
+}
+
+func (en Enemy) GetFrameHeight() int {
+	return en.frameHeight
+}
+
+func (en Enemy) MakeCopy() *Enemy {
+	return &Enemy{
+		img:         en.img,
+		imgOnDeath:  en.imgOnDeath,
+		bullet:      en.bullet,
+		numFrames:   en.numFrames,
+		frameWidth:  en.frameWidth,
+		frameHeight: en.frameHeight,
+		posX:        en.posX,
+		posY:        en.posY,
+		isAlive:     en.isAlive,
 	}
 }
