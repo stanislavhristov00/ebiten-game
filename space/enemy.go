@@ -38,13 +38,7 @@ type Enemy struct {
 
 func NewEnemy(img *ebiten.Image, bulletImg *ebiten.Image, frameX, frameY, frameWidth, frameHeigth, numFrames, posX, posY int) *Enemy {
 	enemy := &Enemy{}
-	enemyBullet := &EnemyBullet{
-		img:        bulletImg,
-		bulletPosX: posX + frameWidth/2,
-		bulletPosY: posY + frameHeigth/2,
-		inAir:      false,
-	}
-	enemy.bullet = enemyBullet
+	enemy.bullet = MakeBullet(bulletImg, posX, posY, false)
 	enemy.img = make([]*ebiten.Image, numFrames)
 	enemy.numFrames = numFrames
 
@@ -74,7 +68,7 @@ func (en *Enemy) LoadDeathFrame(img *ebiten.Image) {
  *	SHOOT!
  */
 
-func (en Enemy) Shoot(screen *ebiten.Image) {
+func (en Enemy) Shoot() {
 	en.bullet.inAir = true
 }
 
@@ -88,21 +82,28 @@ func (en Enemy) Draw(screen *ebiten.Image, count int, scaleX, scaleY float64) {
 	if en.isAlive {
 		i := (count / 20) % en.numFrames
 
+		op.GeoM.Scale(scaleX, scaleY)
+		op.GeoM.Translate(float64(en.posX)*scaleX, float64(en.posY)*scaleY)
+
 		if !en.bullet.inAir {
-			en.bullet.bulletPosX = en.posX + en.frameWidth/2
-			en.bullet.bulletPosY = en.posY + en.frameHeight/2
+			en.bullet.bulletPosX = en.posX + int((float64(en.frameWidth)/2)*scaleX)
+			en.bullet.bulletPosY = en.posY + int((float64(en.frameHeight) * scaleY))
 		}
 
-		op.GeoM.Translate(float64(en.posX), float64(en.posY))
-		op.GeoM.Scale(scaleX, scaleY)
+		_, h := screen.Size()
+
 		screen.DrawImage(en.img[i], op)
 
 		if en.bullet.inAir {
-			en.bulletOffsetXY(0, 1)
 			op.GeoM.Reset()
-			op.GeoM.Scale(0.25, 0.25)
-			op.GeoM.Translate(float64(en.bullet.bulletPosX), float64(en.bullet.bulletPosY))
+			en.bulletOffsetXY(0, 3)
+			op.GeoM.Scale(scaleX, scaleY)
+			op.GeoM.Translate(float64(en.bullet.bulletPosX)*scaleX, float64(en.bullet.bulletPosY)*scaleY)
 			screen.DrawImage(en.bullet.img, op)
+
+			if float64(en.bullet.bulletPosY)*scaleY > float64(h) {
+				en.bullet.inAir = false
+			}
 		}
 	}
 }
@@ -156,12 +157,21 @@ func (en Enemy) MakeCopy() *Enemy {
 	return &Enemy{
 		img:         en.img,
 		imgOnDeath:  en.imgOnDeath,
-		bullet:      en.bullet,
+		bullet:      MakeBullet(en.bullet.img, en.bullet.bulletPosX, en.bullet.bulletPosY, en.bullet.inAir),
 		numFrames:   en.numFrames,
 		frameWidth:  en.frameWidth,
 		frameHeight: en.frameHeight,
 		posX:        en.posX,
 		posY:        en.posY,
 		isAlive:     en.isAlive,
+	}
+}
+
+func MakeBullet(bulletImg *ebiten.Image, posX, posY int, inAir bool) *EnemyBullet {
+	return &EnemyBullet{
+		img:        bulletImg,
+		bulletPosX: posX,
+		bulletPosY: posY,
+		inAir:      false,
 	}
 }
