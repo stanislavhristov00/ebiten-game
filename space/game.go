@@ -1,52 +1,33 @@
 package space
 
-// import (
-// 	"github.com/hajimehoshi/ebiten/v2"
-// )
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
-// type Game struct {
-// 	count 			int
-// 	isFullScreen 	bool
-// 	state			State
-// }
+type Game struct {
+	count 			int
+	state			*State
+}
 
-// func NewGame() *Game {
-// 	return &Game{
-// 		count : 0,
-// 		isFullScreen: false,
-// 		state: *NewState(),
-// 	}
-// }
+func NewGame() *Game {
+	return &Game{
+		count : 0,
+		state: NewState(),
+	}
+}
 
-// func (g *Game) Init(enemies [][]Enemy, player *Player) {
-// 	for index, _ := range enemies {
-// 		g.state.LoadEnemies(enemies[index])
-// 	}
-// 	g.state.LoadPlayer(player)
-// }
+func (g *Game) Init(enemies [][]*Enemy, player *Player) {
+	for index, _ := range enemies {
+		g.state.LoadEnemies(enemies[index])
+	}
+	g.state.LoadPlayer(player)
+}
 
-// func (g *Game) Update() error {
-// 	g.count++
-// 	//fmt.Println(g.isFullScreen)
-// 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
-// 		fmt.Println("Q is pressed")
-// 		g.isFullScreen = !g.isFullScreen
-// 		ebiten.SetFullscreen(g.isFullScreen)
-// 	}
-
-// 	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
-// 		player.Shoot()
-// 	}
-
-// 	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-// 		player.OffsetXY(1, 0)
-// 	}
-
-// 	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-// 		player.OffsetXY(-1, 0)
-// 	}
-// 	return nil
-// }
+func (g *Game) Update() error {
+	g.count++
+	
+	return nil
+}
 
 // func (g *Game) Draw(screen *ebiten.Image) {
 // 	//op := &ebiten.DrawImageOptions{}

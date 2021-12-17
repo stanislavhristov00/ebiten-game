@@ -20,7 +20,8 @@ const (
 	frameHeight = 120
 	frameNum    = 2
 
-	ENEMIES_ON_ROW = 10
+	// There will be five rows in total but you can control the number of enemies.
+	ENEMIES_ON_ROW = 11
 	screenWidth    = 640
 	screenHeigth   = 480
 )
@@ -182,8 +183,8 @@ func main() {
 	player = space.NewPlayer(heroImage, bulletImage, 0, screenHeigth-90/3, 90, 90, 0.35, 0.35)
 	enemy = space.NewEnemy(spriteSheet, bulletImage, 0, 0, 135, 120, 2, 0, 0, 0.25, 0.25)
 	enemy2 := space.NewEnemy(spriteSheet, bulletImage, 0, 120, 135, 120, 2, 0, 0, 0.25, 0.25)
-	enemies = Load10Enemies(enemy, 1)
-	enemies2 = Load10Enemies(enemy2, 2)
+	enemies = LoadRowEnemies(enemy, 1)
+	enemies2 = LoadRowEnemies(enemy2, 2)
 
 	// for _, k := range enemies {
 	// 	fmt.Printf("OFFSET X: %d", k.GetX())
@@ -212,7 +213,7 @@ func getImage(filePath string) image.Image {
 	return img
 }
 
-func Load10Enemies(enemy *space.Enemy, row int) []*space.Enemy {
+func LoadRowEnemies(enemy *space.Enemy, row int) []*space.Enemy {
 	slice := make([]*space.Enemy, 0)
 	enemy.OffsetXY(0, row*enemy.GetFrameHeight()+100)
 	for i := 0; i < ENEMIES_ON_ROW; i++ {
