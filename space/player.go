@@ -150,6 +150,29 @@ func (p *Player) Die() {
 	p.isAlive = false
 }
 
+func (p Player) BulletCollisionWithEnemy(en *Enemy) bool {
+	if p.bullet.inAir {
+		bulletX, bulletY := p.bullet.bulletPosX, p.bullet.bulletPosY
+		_, bulletScaleX := p.scaleX, p.scaleY
+		enemyX, enemyY := en.GetEnemyXY()
+		enemyScaleX, enemyScaleY := en.GetScaleXY()
+		enemyWidth := en.GetFrameWidth()
+
+		if float64(bulletY) < float64(enemyY)*enemyScaleY {
+			if float64(bulletX)*bulletScaleX > float64(enemyX)*enemyScaleX-10 &&
+				float64(bulletX)*bulletScaleX < float64(enemyX)*enemyScaleX+float64(enemyWidth)*enemyScaleX {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (p *Player) SetBulletInAir(inAir bool) {
+	p.bullet.inAir = inAir
+}
+
 func (p Player) IsAlive() bool {
 	return p.isAlive
 }

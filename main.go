@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/stanislavhristov00/Ebitentestrun/space"
 )
 
@@ -27,57 +26,132 @@ const (
 )
 
 var (
-	enemy                    *space.Enemy
-	ENEMY_MOVEMENT_DIRECTION = 1
-	spriteSheet              *ebiten.Image
-	player                   *space.Player
-	bulletImage              *ebiten.Image
-	enemies                  []*space.Enemy
-	enemies2                 []*space.Enemy
+	enemy                      *space.Enemy
+	ENEMY_MOVEMENT_DIRECTION_1 = 1
+	ENEMY_MOVEMENT_DIRECTION_2 = 1
+	spriteSheet                *ebiten.Image
+	player                     *space.Player
+	bulletImage                *ebiten.Image
+	enemies                    []*space.Enemy
+	enemies2                   []*space.Enemy
 )
 
 type Game struct {
 	count int
+	input *space.Input
 }
 
 func (g *Game) Update() error {
 	g.count++
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+	// if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+	// 	player.Shoot()
+	// 	enemies[0].Shoot()
+	// 	enemies[9].Shoot()
+	// 	enemies2[2].Shoot()
+	// }
+
+	if g.input.Update() {
 		player.Shoot()
 		enemies[0].Shoot()
 		enemies[9].Shoot()
 		enemies2[2].Shoot()
 	}
 
-	bulletX, bulletY := enemies[0].GetBulletXY()
-	playerX, playerY := player.GetPlayerXY()
-	playerScaleX, _ := player.GetScaleXY()
-	bulletScaleX, _ := enemies[0].GetScaleXY()
+	// bulletX, bulletY := enemies[0].GetBulletXY()
+	// playerX, playerY := player.GetPlayerXY()
+	// playerScaleX, _ := player.GetScaleXY()
+	// bulletScaleX, bulletScaleY := enemies[0].GetScaleXY()
 
-	if float64(bulletY)*bulletScaleX > float64(playerY) {
-		if float64(bulletX)*bulletScaleX > float64(playerX)*playerScaleX-10 &&
-			float64(bulletX)*bulletScaleX < float64(playerX)*playerScaleX+90*playerScaleX {
-			player.Die()
+	// if float64(bulletY)*bulletScaleY > float64(playerY)-10 {
+	// 	if float64(bulletX)*bulletScaleX > float64(playerX)*playerScaleX-10 &&
+	// 		float64(bulletX)*bulletScaleX < float64(playerX)*playerScaleX+90*playerScaleX {
+	// 		enemies[0].SetBulletInAir(false)
+	// 		player.Die()
+	// 	}
+	// }
+
+	// if enemies[0].BulletCollisionWithPlayer(player) {
+	// 	player.Die()
+	// 	enemies[0].SetBulletInAir(false)
+	// }
+
+	// if player.BulletCollisionWithEnemy(enemies[0]) {
+	// 	enemies[0].Die()
+	// 	player.SetBulletInAir(false)
+	// }
+
+	// if enemies2[0].IsAlive() {
+	// 	if player.BulletCollisionWithEnemy(enemies2[0]) {
+	// 		enemies2[0].Die()
+	// 		player.SetBulletInAir(false)
+	// 	}
+	// }
+
+	for i := 0; i < ENEMIES_ON_ROW; i++ {
+		if enemies[i].IsAlive() {
+			if player.BulletCollisionWithEnemy(enemies[i]) {
+				enemies[i].Die()
+				player.SetBulletInAir(false)
+			}
+		}
+
+		if enemies2[i].IsAlive() {
+			if player.BulletCollisionWithEnemy(enemies2[i]) {
+				enemies2[i].Die()
+				player.SetBulletInAir(false)
+			}
 		}
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		player.OffsetXY(3, 0)
+	// if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+	// 	player.OffsetXY(3, 0)
+	// }
+
+	// if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+	// 	player.OffsetXY(-3, 0)
+	// }
+
+	dir, ok := g.input.Dir()
+
+	if ok {
+		player.OffsetXY(dir.DirToValue()*3, 0)
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		player.OffsetXY(-3, 0)
-	}
-
-	x0, _ := enemies[0].GetEnemyXY()
-	x9, _ := enemies[ENEMIES_ON_ROW-1].GetEnemyXY()
-	if float64(x0)/4 < 0 || float64(x9)*0.25+float64(enemies[ENEMIES_ON_ROW-1].GetFrameWidth())*0.25 > float64(screenWidth) {
-		ENEMY_MOVEMENT_DIRECTION *= -1
-	}
+	// x0, _ := enemies[0].GetEnemyXY()
+	// x9, _ := enemies[ENEMIES_ON_ROW-1].GetEnemyXY()
+	// if float64(x0)/4 < 0 || float64(x9)*0.25+float64(enemies[ENEMIES_ON_ROW-1].GetFrameWidth())*0.25 > float64(screenWidth) {
+	// 	ENEMY_MOVEMENT_DIRECTION *= -1
+	// }
 
 	for i := 0; i < ENEMIES_ON_ROW; i++ {
-		enemies[i].OffsetXY(ENEMY_MOVEMENT_DIRECTION*2, 0)
+		if enemies[i].IsAlive() {
+			xi, _ := enemies[i].GetEnemyXY()
+			scaleX, _ := enemies[i].GetScaleXY()
+			xFrameWidth := enemies[i].GetFrameWidth()
+			if float64(xi)*scaleX < 0 || float64(xi)*scaleX+float64(xFrameWidth)*scaleX > float64(screenWidth) {
+				ENEMY_MOVEMENT_DIRECTION_1 *= -1
+			}
+		}
+
+		if enemies2[i].IsAlive() {
+			xi, _ := enemies2[i].GetEnemyXY()
+			scaleX, _ := enemies2[i].GetScaleXY()
+			xFrameWidth := enemies2[i].GetFrameWidth()
+			if float64(xi)*scaleX < 0 || float64(xi)*scaleX+float64(xFrameWidth)*scaleX > float64(screenWidth) {
+				ENEMY_MOVEMENT_DIRECTION_2 *= -1
+			}
+		}
+	}
+
+	// for i := 0; i < ENEMIES_ON_ROW; i++ {
+	// 	enemies[i].OffsetXY(ENEMY_MOVEMENT_DIRECTION*2, 0)
+	// 	enemies2[i].OffsetXY(ENEMY_MOVEMENT_DIRECTION*2, 0)
+	// }
+
+	for i := 0; i < ENEMIES_ON_ROW; i++ {
+		enemies[i].OffsetXY(ENEMY_MOVEMENT_DIRECTION_1*2, 0)
+		enemies2[i].OffsetXY(ENEMY_MOVEMENT_DIRECTION_2*2, 0)
 	}
 	return nil
 }
@@ -115,7 +189,9 @@ func main() {
 	// 	fmt.Printf("OFFSET X: %d", k.GetX())
 	// }
 
-	g := &Game{}
+	g := &Game{
+		input: space.NewInput(),
+	}
 	ebiten.SetWindowSize(screenWidth, screenHeigth)
 	ebiten.SetWindowTitle("Animation (Ebiten Demo)")
 	if err := ebiten.RunGame(g); err != nil {
@@ -138,7 +214,7 @@ func getImage(filePath string) image.Image {
 
 func Load10Enemies(enemy *space.Enemy, row int) []*space.Enemy {
 	slice := make([]*space.Enemy, 0)
-	enemy.OffsetXY(0, row*enemy.GetFrameHeight())
+	enemy.OffsetXY(0, row*enemy.GetFrameHeight()+100)
 	for i := 0; i < ENEMIES_ON_ROW; i++ {
 		en := enemy.MakeCopy()
 		slice = append(slice, en)

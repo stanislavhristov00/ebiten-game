@@ -8,22 +8,25 @@ const (
 	NUM_ENEMIES = 55
 )
 
+/*
+ *	Represents current game state
+ */
 type State struct {
-	enemies []Enemy
-	player  Player
+	enemies []*Enemy
+	player  *Player
 	input   Input
 }
 
 func NewState() *State {
 	state := &State{
-		enemies: make([]Enemy, NUM_ENEMIES),
+		enemies: make([]*Enemy, NUM_ENEMIES),
 		input:   *NewInput(),
 	}
 
 	return state
 }
 
-func (st *State) LoadEnemies(enemies []Enemy) {
+func (st *State) LoadEnemies(enemies []*Enemy) {
 	if len(st.enemies)+len(enemies) < NUM_ENEMIES {
 		st.enemies = append(st.enemies, enemies...)
 	} else {
@@ -32,7 +35,7 @@ func (st *State) LoadEnemies(enemies []Enemy) {
 }
 
 func (st *State) LoadPlayer(player *Player) {
-	st.player = *player
+	st.player = player
 }
 
 func (st State) UpdateDirMovement() (Dir, bool) {

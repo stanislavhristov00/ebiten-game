@@ -107,6 +107,9 @@ func (en Enemy) Draw(screen *ebiten.Image, count int) {
 			op.GeoM.Reset()
 			en.bulletOffsetXY(0, 3)
 			op.GeoM.Scale(en.scaleX, en.scaleY)
+			/*
+			 * Again taking into consideration the scale of the bullet, when translating on offsets
+			 */
 			op.GeoM.Translate(float64(en.bullet.bulletPosX)*en.scaleX, float64(en.bullet.bulletPosY)*en.scaleY)
 			screen.DrawImage(en.bullet.img, op)
 
@@ -146,21 +149,16 @@ func (en Enemy) DieDraw(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
 	}
 }
 
+/*
+ * Set Enemy state as dead.
+ */
 func (en *Enemy) Die() {
 	en.isAlive = false
 }
 
-func (en Enemy) GetEnemyXY() (int, int) {
-	return en.posX, en.posY
-}
-
-func (en Enemy) GetFrameWidth() int {
-	return en.frameWidth
-}
-
-func (en Enemy) GetFrameHeight() int {
-	return en.frameHeight
-}
+/*
+ *	Makes a deep copy of an Enemy object
+ */
 
 func (en Enemy) MakeCopy() *Enemy {
 	return &Enemy{
@@ -178,6 +176,10 @@ func (en Enemy) MakeCopy() *Enemy {
 	}
 }
 
+/*
+ *	Makes a deep copy of an EnemyBullet object
+ */
+
 func MakeBullet(bulletImg *ebiten.Image, posX, posY int, inAir bool) *EnemyBullet {
 	return &EnemyBullet{
 		img:        bulletImg,
@@ -187,10 +189,52 @@ func MakeBullet(bulletImg *ebiten.Image, posX, posY int, inAir bool) *EnemyBulle
 	}
 }
 
+/*
+ *	Check if bullet collides with player. Return true if so, false otherwise.
+ */
+
+func (en Enemy) BulletCollisionWithPlayer(player *Player) bool {
+	if en.bullet.inAir {
+		bulletX, bulletY := en.bullet.bulletPosX, en.bullet.bulletPosY
+		bulletScaleY, bulletScaleX := en.scaleX, en.scaleY
+		playerX, playerY := player.GetPlayerXY()
+		playerScaleX, _ := player.GetScaleXY()
+
+		if float64(bulletY)*bulletScaleY > float64(playerY)-10 {
+			if float64(bulletX)*bulletScaleX > float64(playerX)*playerScaleX-10 &&
+				float64(bulletX)*bulletScaleX < float64(playerX)*playerScaleX+90*playerScaleX {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (en Enemy) GetBulletXY() (int, int) {
 	return en.bullet.bulletPosX, en.bullet.bulletPosY
 }
 
 func (en Enemy) GetScaleXY() (float64, float64) {
 	return en.scaleX, en.scaleY
+}
+
+func (en *Enemy) SetBulletInAir(inAir bool) {
+	en.bullet.inAir = inAir
+}
+
+func (en Enemy) GetEnemyXY() (int, int) {
+	return en.posX, en.posY
+}
+
+func (en Enemy) GetFrameWidth() int {
+	return en.frameWidth
+}
+
+func (en Enemy) GetFrameHeight() int {
+	return en.frameHeight
+}
+
+func (en Enemy) IsAlive() bool {
+	return en.isAlive
 }
