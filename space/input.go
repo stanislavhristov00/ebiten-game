@@ -73,8 +73,6 @@ func NewInput() *Input {
 		keyStateMap: *(&map[string]keyState{
 			"LeftArrow":  keyState(keyStateNone),
 			"RightArrow": keyState(keyStateNone),
-			"A":          keyState(keyStateNone),
-			"D":          keyState(keyStateNone),
 		}),
 	}
 }
@@ -84,13 +82,7 @@ func NewInput() *Input {
  *	If game is in fullscreen, returns true if mouse is pressed, false otherwise.
  */
 
-func (i *Input) Update(isFullScreen bool) bool {
-	if isFullScreen {
-		if inpututil.IsKeyJustPressed(ebiten.Key(ebiten.MouseButtonLeft)) {
-			return true
-		}
-	}
-
+func (i *Input) Update() bool {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) { // ebiten.IsKeyPressed
 		return true
 	}
@@ -103,35 +95,7 @@ func (i *Input) Update(isFullScreen bool) bool {
  *	If game is in fullscreen, checks for A and D keys as well.
  */
 
-func (i *Input) Dir(isFullScreen bool) (Dir, bool) {
-	if isFullScreen {
-		switch i.keyStateMap["A"] {
-		case keyStateNone:
-			if ebiten.IsKeyPressed(ebiten.KeyA) {
-				i.keyStateMap["A"] = keyStatePressing
-				return DirLeft, true
-			}
-		case keyStatePressing:
-			if !ebiten.IsKeyPressed(ebiten.KeyA) {
-				i.keyStateMap["A"] = keyStateNone
-				return DirNone, false
-			}
-		}
-
-		switch i.keyStateMap["D"] {
-		case keyStateNone:
-			if ebiten.IsKeyPressed(ebiten.KeyD) {
-				i.keyStateMap["D"] = keyStatePressing
-				return DirRight, true
-			}
-		case keyStatePressing:
-			if !ebiten.IsKeyPressed(ebiten.KeyD) {
-				i.keyStateMap["D"] = keyStateNone
-				return DirNone, false
-			}
-		}
-	}
-
+func (i *Input) Dir() (Dir, bool) {
 	switch i.keyStateMap["LeftArrow"] { // inputUtil.isKeyJustPressed?
 	case keyStateNone:
 		if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {

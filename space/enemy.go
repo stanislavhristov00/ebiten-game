@@ -29,6 +29,8 @@ type Enemy struct {
 	numFrames   int
 	posX        int
 	posY        int
+	scaleX      float64
+	scaleY      float64
 	isAlive     bool
 }
 
@@ -36,7 +38,9 @@ type Enemy struct {
  *	Constructor for enemy.
  */
 
-func NewEnemy(img *ebiten.Image, bulletImg *ebiten.Image, frameX, frameY, frameWidth, frameHeigth, numFrames, posX, posY int) *Enemy {
+func NewEnemy(img *ebiten.Image, bulletImg *ebiten.Image,
+	frameX, frameY, frameWidth, frameHeigth,
+	numFrames, posX, posY int, scaleX, scaleY float64) *Enemy {
 	enemy := &Enemy{}
 	enemy.bullet = MakeBullet(bulletImg, posX, posY, false)
 	enemy.img = make([]*ebiten.Image, numFrames)
@@ -52,6 +56,8 @@ func NewEnemy(img *ebiten.Image, bulletImg *ebiten.Image, frameX, frameY, frameW
 	enemy.isAlive = true
 	enemy.frameHeight = frameHeigth
 	enemy.frameWidth = frameWidth
+	enemy.scaleX = scaleX
+	enemy.scaleY = scaleY
 
 	return enemy
 }
@@ -76,18 +82,21 @@ func (en Enemy) Shoot() {
  *	Draw the enemy animation on the context screen.
  */
 
-func (en Enemy) Draw(screen *ebiten.Image, count int, scaleX, scaleY float64) {
+func (en Enemy) Draw(screen *ebiten.Image, count int) {
 	op := &ebiten.DrawImageOptions{}
 
 	if en.isAlive {
 		i := (count / 20) % en.numFrames
 
-		op.GeoM.Scale(scaleX, scaleY)
-		op.GeoM.Translate(float64(en.posX)*scaleX, float64(en.posY)*scaleY)
+		op.GeoM.Scale(en.scaleX, en.scaleY)
+		/*
+		 * We have to scale the offsets of the enemy according to its scale (size).
+		 */
+		op.GeoM.Translate(float64(en.posX)*en.scaleX, float64(en.posY)*en.scaleY)
 
 		if !en.bullet.inAir {
-			en.bullet.bulletPosX = en.posX + int((float64(en.frameWidth)/2)*scaleX)
-			en.bullet.bulletPosY = en.posY + int((float64(en.frameHeight) * scaleY))
+			en.bullet.bulletPosX = en.posX + int((float64(en.frameWidth)/2)*en.scaleX)
+			en.bullet.bulletPosY = en.posY + int((float64(en.frameHeight) * en.scaleY))
 		}
 
 		_, h := screen.Size()
@@ -97,11 +106,11 @@ func (en Enemy) Draw(screen *ebiten.Image, count int, scaleX, scaleY float64) {
 		if en.bullet.inAir {
 			op.GeoM.Reset()
 			en.bulletOffsetXY(0, 3)
-			op.GeoM.Scale(scaleX, scaleY)
-			op.GeoM.Translate(float64(en.bullet.bulletPosX)*scaleX, float64(en.bullet.bulletPosY)*scaleY)
+			op.GeoM.Scale(en.scaleX, en.scaleY)
+			op.GeoM.Translate(float64(en.bullet.bulletPosX)*en.scaleX, float64(en.bullet.bulletPosY)*en.scaleY)
 			screen.DrawImage(en.bullet.img, op)
 
-			if float64(en.bullet.bulletPosY)*scaleY > float64(h) {
+			if float64(en.bullet.bulletPosY)*en.scaleY > float64(h) {
 				en.bullet.inAir = false
 			}
 		}
@@ -130,19 +139,19 @@ func (en *Enemy) OffsetXY(x, y int) {
  *	Displays the death animation if there is any.
  */
 
-func (en Enemy) Die(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
+func (en Enemy) DieDraw(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
 	if en.imgOnDeath != nil {
-		op.GeoM.Translate(float64(en.posX), float64(en.posY))
+		op.GeoM.Translate(float64(en.posX)*en.scaleX, float64(en.posY)*en.scaleY)
 		screen.DrawImage(en.imgOnDeath, op)
 	}
 }
 
-func (en Enemy) GetX() int {
-	return en.posX
+func (en *Enemy) Die() {
+	en.isAlive = false
 }
 
-func (en Enemy) GetY() int {
-	return en.posY
+func (en Enemy) GetEnemyXY() (int, int) {
+	return en.posX, en.posY
 }
 
 func (en Enemy) GetFrameWidth() int {
@@ -161,6 +170,8 @@ func (en Enemy) MakeCopy() *Enemy {
 		numFrames:   en.numFrames,
 		frameWidth:  en.frameWidth,
 		frameHeight: en.frameHeight,
+		scaleX:      en.scaleX,
+		scaleY:      en.scaleY,
 		posX:        en.posX,
 		posY:        en.posY,
 		isAlive:     en.isAlive,
@@ -174,4 +185,12 @@ func MakeBullet(bulletImg *ebiten.Image, posX, posY int, inAir bool) *EnemyBulle
 		bulletPosY: posY,
 		inAir:      false,
 	}
+}
+
+func (en Enemy) GetBulletXY() (int, int) {
+	return en.bullet.bulletPosX, en.bullet.bulletPosY
+}
+
+func (en Enemy) GetScaleXY() (float64, float64) {
+	return en.scaleX, en.scaleY
 }

@@ -35,10 +35,10 @@ func (st *State) LoadPlayer(player *Player) {
 	st.player = *player
 }
 
-func (st State) UpdateDirMovement(isFullScreen bool) (Dir, bool) {
-	return st.input.Dir(isFullScreen)
+func (st State) UpdateDirMovement() (Dir, bool) {
+	return st.input.Dir()
 }
 
-func (st State) UpdateShoot(isFullScreen bool) bool {
-	return st.input.Update(isFullScreen)
+func (st State) UpdateShoot() bool {
+	return st.input.Update()
 }

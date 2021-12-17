@@ -22,20 +22,25 @@ type PlayerBullet struct {
  *	Represents a player.
  */
 type Player struct {
-	img        *ebiten.Image
-	imgOnDeath *ebiten.Image
-	bullet     *PlayerBullet
-	posX       int
-	posY       int
-	lives      int
-	isAlive    bool
+	img         *ebiten.Image
+	imgOnDeath  *ebiten.Image
+	bullet      *PlayerBullet
+	posX        int
+	posY        int
+	frameWidth  int
+	frameHeigth int
+	scaleX      float64
+	scaleY      float64
+	lives       int
+	isAlive     bool
 }
 
 /*
  *	Constructor for player.
  */
 
-func NewPlayer(img *ebiten.Image, bulletImg *ebiten.Image, posX, posY int) *Player {
+func NewPlayer(img *ebiten.Image, bulletImg *ebiten.Image,
+	posX, posY, frameWidth, frameHeigth int, scaleX, scaleY float64) *Player {
 	playerBullet := &PlayerBullet{
 		img:        bulletImg,
 		bulletPosX: posX,
@@ -44,12 +49,16 @@ func NewPlayer(img *ebiten.Image, bulletImg *ebiten.Image, posX, posY int) *Play
 	}
 
 	player := &Player{
-		bullet:  playerBullet,
-		img:     img,
-		posX:    posX,
-		posY:    posY,
-		lives:   NUM_LIVES,
-		isAlive: true,
+		bullet:      playerBullet,
+		img:         img,
+		posX:        posX,
+		posY:        posY,
+		frameWidth:  frameWidth,
+		frameHeigth: frameHeigth,
+		scaleX:      scaleX,
+		scaleY:      scaleY,
+		lives:       NUM_LIVES,
+		isAlive:     true,
 	}
 
 	return player
@@ -85,11 +94,11 @@ func (p *Player) OffsetXY(x, y int) {
  *	Draw the enemy animation on the context screen.
  */
 
-func (p Player) Draw(screen *ebiten.Image, scaleX, scaleY float64) {
+func (p Player) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	if p.isAlive {
-		op.GeoM.Scale(scaleX, scaleY)
-		op.GeoM.Translate(float64(p.posX)*scaleX, float64(p.posY))
+		op.GeoM.Scale(p.scaleX, p.scaleY)
+		op.GeoM.Translate(float64(p.posX)*p.scaleX, float64(p.posY))
 		if !p.bullet.inAir {
 			p.bullet.bulletPosX = p.posX + 30
 			p.bullet.bulletPosY = p.posY
@@ -101,7 +110,7 @@ func (p Player) Draw(screen *ebiten.Image, scaleX, scaleY float64) {
 		if p.bullet.inAir {
 			p.offsetBulletXY(0, -3)
 			op.GeoM.Scale(0.25, 0.25)
-			op.GeoM.Translate(float64(p.bullet.bulletPosX)*scaleX, float64(p.bullet.bulletPosY))
+			op.GeoM.Translate(float64(p.bullet.bulletPosX)*p.scaleX, float64(p.bullet.bulletPosY))
 			screen.DrawImage(p.bullet.img, op)
 
 			if p.bullet.bulletPosY < 0 {
@@ -123,9 +132,36 @@ func (p *Player) Shoot() {
  *	Displays the death animation if there is any.
  */
 
-func (p Player) Die(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
+func (p *Player) DieDraw(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(p.scaleX, p.scaleY)
+	op.GeoM.Translate(float64(p.posX)*p.scaleX, float64(p.posY))
 	if p.imgOnDeath != nil {
-		op.GeoM.Translate(float64(p.posX), float64(p.posY))
+		op.GeoM.Translate(float64(p.posX)*p.scaleX, float64(p.posY))
 		screen.DrawImage(p.imgOnDeath, op)
 	}
+}
+
+/*
+ * Change the state of a plyaer to dead.
+ */
+
+func (p *Player) Die() {
+	p.isAlive = false
+}
+
+func (p Player) IsAlive() bool {
+	return p.isAlive
+}
+
+func (p Player) GetPlayerXY() (int, int) {
+	return p.posX, p.posY
+}
+
+func (p Player) GetScaleXY() (float64, float64) {
+	return p.scaleX, p.scaleY
+}
+
+func (p Player) GetFrameWidth() int {
+	return p.frameWidth
 }
