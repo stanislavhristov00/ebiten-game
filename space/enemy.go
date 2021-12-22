@@ -142,8 +142,13 @@ func (en *Enemy) OffsetXY(x, y int) {
  *	Displays the death animation if there is any.
  */
 
-func (en Enemy) DieDraw(screen *ebiten.Image, op *ebiten.DrawImageOptions) {
+func (en Enemy) DieDraw(screen *ebiten.Image) {
 	if en.imgOnDeath != nil {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Scale(en.scaleX, en.scaleY)
+		/*
+		 * We have to scale the offsets of the enemy according to its scale (size).
+		 */
 		op.GeoM.Translate(float64(en.posX)*en.scaleX, float64(en.posY)*en.scaleY)
 		screen.DrawImage(en.imgOnDeath, op)
 	}

@@ -9,10 +9,10 @@ type Game struct {
 	state			*State
 }
 
-func NewGame() *Game {
+func NewGame(numEnemies int) *Game {
 	return &Game{
 		count : 0,
-		state: NewState(),
+		state: NewState(numEnemies),
 	}
 }
 

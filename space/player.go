@@ -169,6 +169,14 @@ func (p Player) BulletCollisionWithEnemy(en *Enemy) bool {
 	return false
 }
 
+func (p *Player) LoseLife() {
+	p.lives -= 1
+
+	if p.lives == 0 {
+		p.Die()
+	}
+}
+
 func (p *Player) SetBulletInAir(inAir bool) {
 	p.bullet.inAir = inAir
 }
