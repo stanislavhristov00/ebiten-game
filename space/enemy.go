@@ -21,17 +21,18 @@ type EnemyBullet struct {
  *	Represents a single enemy.
  */
 type Enemy struct {
-	img         []*ebiten.Image
-	imgOnDeath  *ebiten.Image
-	bullet      *EnemyBullet
-	frameWidth  int
-	frameHeight int
-	numFrames   int
-	posX        int
-	posY        int
-	scaleX      float64
-	scaleY      float64
-	isAlive     bool
+	img             []*ebiten.Image
+	imgOnDeath      *ebiten.Image
+	bullet          *EnemyBullet
+	frameWidth      int
+	frameHeight     int
+	numFrames       int
+	posX            int
+	posY            int
+	scaleX          float64
+	scaleY          float64
+	deathFrameDrawn bool
+	isAlive         bool
 }
 
 /*
@@ -58,6 +59,7 @@ func NewEnemy(img *ebiten.Image, bulletImg *ebiten.Image,
 	enemy.frameWidth = frameWidth
 	enemy.scaleX = scaleX
 	enemy.scaleY = scaleY
+	enemy.deathFrameDrawn = false
 
 	return enemy
 }
@@ -242,4 +244,12 @@ func (en Enemy) GetFrameHeight() int {
 
 func (en Enemy) IsAlive() bool {
 	return en.isAlive
+}
+
+func (en *Enemy) SetDeathFrameDrawn(isSet bool) {
+	en.deathFrameDrawn = isSet
+}
+
+func (en Enemy) GetDeathFrameDrawn() bool {
+	return en.deathFrameDrawn
 }

@@ -6,6 +6,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+var (
+	NUM_ENEMIES_ON_ROW       = 0
+	ENEMY_MOVEMENT_DIRECTION = 1
+)
+
 /*
  *	Represents current game state
  */
@@ -18,19 +23,26 @@ type State struct {
 
 func NewState(numEnemies int) *State {
 	state := &State{
-		enemies:    make([]*Enemy, numEnemies),
+		enemies:    make([]*Enemy, 0),
 		numEnemies: numEnemies,
 		input:      *NewInput(),
 	}
 
+	NUM_ENEMIES_ON_ROW = state.numEnemies / 5
 	return state
 }
 
 func (st *State) LoadEnemies(enemies []*Enemy) {
-	if len(st.enemies)+len(enemies) < st.numEnemies {
-		st.enemies = append(st.enemies, enemies...)
-	} else {
-		fmt.Printf("Cannot load enemies. Exceeding capacity of NUM_ENEMIES: %d\n", st.numEnemies)
+	// 	if len(st.enemies)+len(enemies) <= st.numEnemies {
+	// 		for i := 0; i < len(enemies); i++ {
+	// 			st.enemies = append(st.enemies, enemies[i])
+	// 		}
+	// 	} else {
+	// 		fmt.Printf("Cannot load enemies. Exceeding capacity of NUM_ENEMIES: %d\n", st.numEnemies)
+	// 	}
+	// }
+	for i := 0; i < len(enemies); i++ {
+		st.enemies = append(st.enemies, enemies[i])
 	}
 }
 
@@ -50,9 +62,9 @@ func (st State) DrawEnemies(screen *ebiten.Image, count int) {
 	for i := 0; i < len(st.enemies); i++ {
 		if st.enemies[i].IsAlive() {
 			st.enemies[i].Draw(screen, count)
-		} else {
+		} else if !st.enemies[i].GetDeathFrameDrawn() {
 			st.enemies[i].DieDraw(screen)
-			removeElement(st.enemies, i)
+			st.enemies[i].SetDeathFrameDrawn(true)
 		}
 	}
 }
@@ -60,14 +72,18 @@ func (st State) DrawEnemies(screen *ebiten.Image, count int) {
 func (st State) DrawPlayer(screen *ebiten.Image) {
 	if st.player.IsAlive() {
 		st.player.Draw(screen)
+	} else {
+		st.player.DieDraw(screen)
 	}
 }
 
 func (st State) CheckIfPlayerShotEnemy() {
 	for i := 0; i < len(st.enemies); i++ {
-		if st.player.BulletCollisionWithEnemy(st.enemies[i]) {
-			st.enemies[i].Die()
-			st.player.SetBulletInAir(false)
+		if st.enemies[i].IsAlive() {
+			if st.player.BulletCollisionWithEnemy(st.enemies[i]) {
+				st.enemies[i].Die()
+				st.player.SetBulletInAir(false)
+			}
 		}
 	}
 }
@@ -81,8 +97,34 @@ func (st State) CheckIfEnemyShotPlayer() {
 	}
 }
 
-func removeElement(enemies []*Enemy, index int) {
-	enemies[index] = enemies[len(enemies)-1]
-	enemies[len(enemies)-1] = &Enemy{}
-	enemies = enemies[:len(enemies)-1]
+func (st State) MoveEnemies(screenWidth int) {
+	x0, _ := st.enemies[0].GetEnemyXY()
+	scaleX0, _ := st.enemies[0].GetScaleXY()
+	xRow, _ := st.enemies[NUM_ENEMIES_ON_ROW-1].GetEnemyXY()
+	xRowScaleX, _ := st.enemies[NUM_ENEMIES_ON_ROW-1].GetScaleXY()
+	xRowWidth := st.enemies[NUM_ENEMIES_ON_ROW-1].GetFrameWidth()
+	if float64(x0)*scaleX0 < 0 || float64(xRow)*xRowScaleX+float64(xRowWidth)*xRowScaleX > float64(screenWidth) {
+		ENEMY_MOVEMENT_DIRECTION *= -1
+	}
+
+	for i := 0; i < st.numEnemies; i++ {
+		st.enemies[i].OffsetXY(ENEMY_MOVEMENT_DIRECTION*2, 0)
+	}
+
+}
+
+func (st State) MovePlayer(x, y int) {
+	st.player.OffsetXY(x, y)
+}
+
+func (st State) PlayerShoot() {
+	st.player.Shoot()
+}
+
+func (st State) EnemyShoot(index int) {
+	if index < len(st.enemies) {
+		st.enemies[index].Shoot()
+	} else {
+		fmt.Printf("Index out of bounds with index %d", index)
+	}
 }
