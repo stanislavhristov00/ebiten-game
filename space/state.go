@@ -6,6 +6,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const (
+	NUM_ROWS = 5
+)
+
 var (
 	NUM_ENEMIES_ON_ROW       = 0
 	ENEMY_MOVEMENT_DIRECTION = 1
@@ -28,7 +32,7 @@ func NewState(numEnemies int) *State {
 		input:      *NewInput(),
 	}
 
-	NUM_ENEMIES_ON_ROW = state.numEnemies / 5
+	NUM_ENEMIES_ON_ROW = state.numEnemies / NUM_ROWS
 	return state
 }
 
@@ -126,5 +130,11 @@ func (st State) EnemyShoot(index int) {
 		st.enemies[index].Shoot()
 	} else {
 		fmt.Printf("Index out of bounds with index %d", index)
+	}
+}
+
+func (st *State) CopyEnemiesIntoState(state *State) {
+	for i := 0; i < len(state.enemies); i++ {
+		*st.enemies[i] = *state.enemies[i]
 	}
 }

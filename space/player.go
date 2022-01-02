@@ -5,7 +5,9 @@ import (
 )
 
 const (
-	NUM_LIVES = 3
+	NUM_LIVES     = 3
+	RESTART_POS_X = 0
+	RESTART_POS_Y = 450
 )
 
 /*
@@ -175,6 +177,13 @@ func (p *Player) LoseLife() {
 	if p.lives == 0 {
 		p.Die()
 	}
+}
+
+func (p *Player) Revive() {
+	p.isAlive = true
+	p.lives = NUM_LIVES
+	p.posX, p.bullet.bulletPosX = RESTART_POS_X, RESTART_POS_X
+	p.posY, p.bullet.bulletPosY = RESTART_POS_Y, RESTART_POS_Y
 }
 
 func (p *Player) SetBulletInAir(inAir bool) {
