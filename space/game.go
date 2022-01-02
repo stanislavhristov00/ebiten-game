@@ -1,8 +1,21 @@
 package space
 
 import (
+	"fmt"
+	"image/color"
+	"io/ioutil"
+	"log"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text"
+
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
+)
+
+const (
+	dpi = 72
 )
 
 type Game struct {
@@ -10,6 +23,7 @@ type Game struct {
 	state       *State
 	screenWidth int
 	stateCopy   *State
+	font        font.Face
 }
 
 func NewGame(numEnemies int, screenWidth int) *Game {
@@ -18,6 +32,39 @@ func NewGame(numEnemies int, screenWidth int) *Game {
 		screenWidth: screenWidth,
 		state:       NewState(numEnemies),
 		stateCopy:   NewState(numEnemies),
+	}
+}
+
+func (g *Game) InitFont(fileName string) {
+	bytes, e := ioutil.ReadFile(fileName)
+
+	if e != nil {
+		log.Fatal(e)
+	}
+
+	tt, err := opentype.Parse(bytes)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	g.font, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    24,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func (g Game) drawText(screen *ebiten.Image) {
+	first := fmt.Sprintf("LIVES  %d", g.state.player.GetLives())
+
+	if g.font != nil {
+		text.Draw(screen, first, g.font, 10, 20, color.White)
 	}
 }
 
@@ -98,6 +145,7 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	g.state.DrawPlayer(screen)
 	g.state.DrawEnemies(screen, g.count)
+	g.drawText(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

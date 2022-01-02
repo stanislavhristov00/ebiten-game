@@ -65,6 +65,7 @@ func main() {
 
 	g.LoadEnemies(enemies, enemies2, enemies3, enemies4, enemies5)
 	g.LoadPlayer(player)
+	g.InitFont("resources/font/font.ttf")
 
 	ebiten.SetWindowSize(screenWidth, screenHeigth)
 	ebiten.SetWindowTitle("Animation (Ebiten Demo)")

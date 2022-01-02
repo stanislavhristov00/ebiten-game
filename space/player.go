@@ -1,8 +1,6 @@
 package space
 
 import (
-	"fmt"
-
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -167,8 +165,6 @@ func (p Player) BulletCollisionWithEnemy(en *Enemy) bool {
 			if float64(bulletX)*bulletScaleX > float64(enemyX)*enemyScaleX-10 &&
 				float64(bulletX)*bulletScaleX < float64(enemyX)*enemyScaleX+float64(enemyWidth)*enemyScaleX-10 {
 
-				fmt.Printf("bullet x, bullet y: %f, %f\n", float64(bulletX)*bulletScaleX, float64(bulletY))
-				fmt.Printf("enemy x, enemy y: %f, %f\n", float64(enemyX)*enemyScaleX, float64(enemyY)*enemyScaleY)
 				return true
 			}
 		}
@@ -210,4 +206,8 @@ func (p Player) GetScaleXY() (float64, float64) {
 
 func (p Player) GetFrameWidth() int {
 	return p.frameWidth
+}
+
+func (p Player) GetLives() int {
+	return p.lives
 }
