@@ -87,8 +87,27 @@ func (en Enemy) Shoot() {
 func (en Enemy) Draw(screen *ebiten.Image, count int) {
 	op := &ebiten.DrawImageOptions{}
 
+	if en.bullet.inAir {
+		_, h := screen.Size()
+
+		op.GeoM.Reset()
+		en.bulletOffsetXY(0, 3)
+		op.GeoM.Scale(en.scaleX, en.scaleY)
+		/*
+		* Again taking into consideration the scale of the bullet, when translating on offsets
+		 */
+		op.GeoM.Translate(float64(en.bullet.bulletPosX)*en.scaleX, float64(en.bullet.bulletPosY)*en.scaleY)
+		screen.DrawImage(en.bullet.img, op)
+
+		if float64(en.bullet.bulletPosY)*en.scaleY > float64(h) {
+			en.bullet.inAir = false
+		}
+	}
+
 	if en.isAlive {
 		i := (count / 20) % en.numFrames
+
+		op.GeoM.Reset()
 
 		op.GeoM.Scale(en.scaleX, en.scaleY)
 		/*
@@ -101,24 +120,7 @@ func (en Enemy) Draw(screen *ebiten.Image, count int) {
 			en.bullet.bulletPosY = en.posY + int((float64(en.frameHeight) * en.scaleY))
 		}
 
-		_, h := screen.Size()
-
 		screen.DrawImage(en.img[i], op)
-
-		if en.bullet.inAir {
-			op.GeoM.Reset()
-			en.bulletOffsetXY(0, 3)
-			op.GeoM.Scale(en.scaleX, en.scaleY)
-			/*
-			 * Again taking into consideration the scale of the bullet, when translating on offsets
-			 */
-			op.GeoM.Translate(float64(en.bullet.bulletPosX)*en.scaleX, float64(en.bullet.bulletPosY)*en.scaleY)
-			screen.DrawImage(en.bullet.img, op)
-
-			if float64(en.bullet.bulletPosY)*en.scaleY > float64(h) {
-				en.bullet.inAir = false
-			}
-		}
 	}
 }
 

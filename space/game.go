@@ -19,19 +19,25 @@ const (
 )
 
 type Game struct {
-	count       int
-	state       *State
-	screenWidth int
-	stateCopy   *State
-	font        font.Face
+	count              int
+	state              *State
+	screenWidth        int
+	stateCopy          *State
+	fontSmall          font.Face
+	fontBig            font.Face
+	fontMedium         font.Face
+	isOnStartingScreen bool
+	isGameOver         bool
 }
 
 func NewGame(numEnemies int, screenWidth int) *Game {
 	return &Game{
-		count:       0,
-		screenWidth: screenWidth,
-		state:       NewState(numEnemies),
-		stateCopy:   NewState(numEnemies),
+		count:              0,
+		screenWidth:        screenWidth,
+		state:              NewState(numEnemies),
+		stateCopy:          NewState(numEnemies),
+		isOnStartingScreen: true,
+		isGameOver:         false,
 	}
 }
 
@@ -48,8 +54,28 @@ func (g *Game) InitFont(fileName string) {
 		log.Fatal(err)
 	}
 
-	g.font, err = opentype.NewFace(tt, &opentype.FaceOptions{
+	g.fontSmall, err = opentype.NewFace(tt, &opentype.FaceOptions{
 		Size:    24,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	g.fontMedium, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    36,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	g.fontBig, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    72,
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
@@ -61,11 +87,22 @@ func (g *Game) InitFont(fileName string) {
 }
 
 func (g Game) drawText(screen *ebiten.Image) {
-	first := fmt.Sprintf("LIVES  %d", g.state.player.GetLives())
+	if g.isOnStartingScreen {
+		text.Draw(screen, "SPACE INVADERS", g.fontBig, 50, 100, color.White)
+		text.Draw(screen, "Move  with  arrow keys", g.fontMedium, 130, 150, color.White)
+		text.Draw(screen, "Shoot  with  spacebar", g.fontMedium, 135, 200, color.White)
+		text.Draw(screen, "PRESS SPACEBAR TO START", g.fontMedium, 115, 350, color.White)
+	} else if g.isGameOver {
+		text.Draw(screen, "GAME OVER", g.fontBig, 150, 200, color.White)
+		text.Draw(screen, "Press  Q  to continue playing", g.fontMedium, 80, 250, color.White)
+	} else {
+		first := fmt.Sprintf("LIVES  %d", g.state.player.GetLives())
 
-	if g.font != nil {
-		text.Draw(screen, first, g.font, 10, 20, color.White)
+		if g.fontSmall != nil {
+			text.Draw(screen, first, g.fontSmall, 10, 20, color.White)
+		}
 	}
+
 }
 
 func (g *Game) LoadEnemies(enemies []*Enemy, enemies2 []*Enemy, enemies3 []*Enemy, enemies4 []*Enemy, enemies5 []*Enemy) {
@@ -83,21 +120,9 @@ func (g *Game) LoadEnemies(enemies []*Enemy, enemies2 []*Enemy, enemies3 []*Enem
 
 	for i := 0; i < g.state.numEnemies/5; i++ {
 		enemiesCopy = append(enemiesCopy, enemies[i].MakeCopy())
-	}
-
-	for i := 0; i < g.state.numEnemies/5; i++ {
 		enemies2Copy = append(enemies2Copy, enemies2[i].MakeCopy())
-	}
-
-	for i := 0; i < g.state.numEnemies/5; i++ {
 		enemies3Copy = append(enemies3Copy, enemies3[i].MakeCopy())
-	}
-
-	for i := 0; i < g.state.numEnemies/5; i++ {
 		enemies4Copy = append(enemies4Copy, enemies4[i].MakeCopy())
-	}
-
-	for i := 0; i < g.state.numEnemies/5; i++ {
 		enemies5Copy = append(enemies5Copy, enemies5[i].MakeCopy())
 	}
 
@@ -114,9 +139,14 @@ func (g *Game) LoadPlayer(player *Player) {
 }
 
 func (g *Game) Update() error {
-	if g.state.player.IsAlive() {
+	if g.isOnStartingScreen {
+		if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+			g.isOnStartingScreen = false
+		}
+	} else if !g.isGameOver {
 		g.count++
 
+		g.isGameOver = !g.state.player.IsAlive()
 		g.state.CheckIfEnemyShotPlayer()
 
 		g.state.CheckIfPlayerShotEnemy()
@@ -143,9 +173,12 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.state.DrawPlayer(screen)
-	g.state.DrawEnemies(screen, g.count)
 	g.drawText(screen)
+
+	if !g.isGameOver && !g.isOnStartingScreen {
+		g.state.DrawPlayer(screen)
+		g.state.DrawEnemies(screen, g.count)
+	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -156,5 +189,7 @@ func (g *Game) Restart() {
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 		g.state.CopyEnemiesIntoState(g.stateCopy)
 		g.state.player.Revive()
+		g.state.SetEnemyMovementDirectionRight()
+		g.isGameOver = false
 	}
 }

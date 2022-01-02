@@ -89,7 +89,7 @@ func getImage(filePath string) image.Image {
 
 func LoadRowEnemies(enemy *space.Enemy, row int) []*space.Enemy {
 	slice := make([]*space.Enemy, 0)
-	enemy.OffsetXY(0, row*enemy.GetFrameHeight()+100)
+	enemy.OffsetXY(0, row*enemy.GetFrameHeight()+50)
 	for i := 0; i < ENEMIES_ON_ROW; i++ {
 		en := enemy.MakeCopy()
 		slice = append(slice, en)

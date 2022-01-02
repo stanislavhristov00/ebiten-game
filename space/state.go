@@ -64,9 +64,10 @@ func (st State) UpdateShoot() bool {
 
 func (st State) DrawEnemies(screen *ebiten.Image, count int) {
 	for i := 0; i < len(st.enemies); i++ {
-		if st.enemies[i].IsAlive() {
-			st.enemies[i].Draw(screen, count)
-		} else if !st.enemies[i].GetDeathFrameDrawn() {
+		// if st.enemies[i].IsAlive() {
+		st.enemies[i].Draw(screen, count)
+
+		if !st.enemies[i].IsAlive() && !st.enemies[i].GetDeathFrameDrawn() {
 			st.enemies[i].DieDraw(screen)
 			st.enemies[i].SetDeathFrameDrawn(true)
 		}
@@ -147,4 +148,8 @@ func (st *State) CopyEnemiesIntoState(state *State) {
 	for i := 0; i < len(state.enemies); i++ {
 		*st.enemies[i] = *state.enemies[i]
 	}
+}
+
+func (st State) SetEnemyMovementDirectionRight() {
+	ENEMY_MOVEMENT_DIRECTION *= -1
 }
