@@ -28,6 +28,8 @@ type Game struct {
 	fontMedium         font.Face
 	isOnStartingScreen bool
 	isGameOver         bool
+	score              int
+	highScore          int
 }
 
 func NewGame(numEnemies int, screenWidth int) *Game {
@@ -38,6 +40,8 @@ func NewGame(numEnemies int, screenWidth int) *Game {
 		stateCopy:          NewState(numEnemies),
 		isOnStartingScreen: true,
 		isGameOver:         false,
+		score:              0,
+		highScore:          0,
 	}
 }
 
@@ -88,18 +92,24 @@ func (g *Game) InitFont(fileName string) {
 
 func (g Game) drawText(screen *ebiten.Image) {
 	if g.isOnStartingScreen {
-		text.Draw(screen, "SPACE INVADERS", g.fontBig, 50, 100, color.White)
-		text.Draw(screen, "Move  with  arrow keys", g.fontMedium, 130, 150, color.White)
-		text.Draw(screen, "Shoot  with  spacebar", g.fontMedium, 135, 200, color.White)
-		text.Draw(screen, "PRESS SPACEBAR TO START", g.fontMedium, 115, 350, color.White)
+		if g.fontMedium != nil && g.fontBig != nil {
+			text.Draw(screen, "SPACE INVADERS", g.fontBig, 50, 100, color.White)
+			text.Draw(screen, "Move  with  arrow keys", g.fontMedium, 130, 150, color.White)
+			text.Draw(screen, "Shoot  with  spacebar", g.fontMedium, 135, 200, color.White)
+			text.Draw(screen, "PRESS SPACEBAR TO START", g.fontMedium, 115, 350, color.White)
+		}
 	} else if g.isGameOver {
-		text.Draw(screen, "GAME OVER", g.fontBig, 150, 200, color.White)
-		text.Draw(screen, "Press  Q  to continue playing", g.fontMedium, 80, 250, color.White)
+		if g.fontMedium != nil && g.fontBig != nil {
+			text.Draw(screen, "GAME OVER", g.fontBig, 150, 200, color.White)
+			text.Draw(screen, "Press  Q  to continue playing", g.fontMedium, 80, 250, color.White)
+		}
 	} else {
 		first := fmt.Sprintf("LIVES  %d", g.state.player.GetLives())
+		second := fmt.Sprintf("SCORE  %d", g.score)
 
 		if g.fontSmall != nil {
 			text.Draw(screen, first, g.fontSmall, 10, 20, color.White)
+			text.Draw(screen, second, g.fontSmall, 120, 20, color.White)
 		}
 	}
 
@@ -149,7 +159,9 @@ func (g *Game) Update() error {
 		g.isGameOver = !g.state.player.IsAlive()
 		g.state.CheckIfEnemyShotPlayer()
 
-		g.state.CheckIfPlayerShotEnemy()
+		if g.state.CheckIfPlayerShotEnemy() {
+			g.score += 10
+		}
 
 		if g.state.input.Update() {
 			g.state.PlayerShoot()
@@ -161,10 +173,15 @@ func (g *Game) Update() error {
 		dir, ok := g.state.input.Dir()
 
 		if ok {
-			g.state.MovePlayer(dir.DirToValue()*3, 0)
+			g.state.MovePlayer(dir.DirToValue()*6, 0)
 		}
 
 		g.state.MoveEnemies(g.screenWidth)
+
+		if g.state.CheckIfAllEnemiesAreDead() {
+			g.LoadNextWave(1)
+		}
+
 	} else {
 		g.Restart()
 	}
@@ -192,4 +209,10 @@ func (g *Game) Restart() {
 		g.state.SetEnemyMovementDirectionRight()
 		g.isGameOver = false
 	}
+}
+
+func (g *Game) LoadNextWave(enemySpeed int) {
+	g.state.CopyEnemiesIntoState(g.stateCopy)
+	g.state.SetEnemyMovementDirectionRight()
+	g.state.IncreaseEnemyMovementSpeed(enemySpeed)
 }

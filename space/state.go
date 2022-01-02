@@ -13,6 +13,7 @@ const (
 var (
 	NUM_ENEMIES_ON_ROW       = 0
 	ENEMY_MOVEMENT_DIRECTION = 1
+	ENEMY_SPEED              = 2
 )
 
 /*
@@ -74,6 +75,20 @@ func (st State) DrawEnemies(screen *ebiten.Image, count int) {
 	}
 }
 
+func (st State) CheckIfAllEnemiesAreDead() bool {
+	for i := 0; i < len(st.enemies); i++ {
+		if st.enemies[i].IsAlive() {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (st *State) IncreaseEnemyMovementSpeed(amount int) {
+	ENEMY_SPEED += amount
+}
+
 func (st State) DrawPlayer(screen *ebiten.Image) {
 	if st.player.IsAlive() {
 		st.player.Draw(screen)
@@ -82,15 +97,18 @@ func (st State) DrawPlayer(screen *ebiten.Image) {
 	}
 }
 
-func (st State) CheckIfPlayerShotEnemy() {
+func (st State) CheckIfPlayerShotEnemy() bool {
 	for i := 0; i < len(st.enemies); i++ {
 		if st.enemies[i].IsAlive() {
 			if st.player.BulletCollisionWithEnemy(st.enemies[i]) {
-				st.enemies[i].Die()
 				st.player.SetBulletInAir(false)
+				st.enemies[i].Die()
+				return true
 			}
 		}
 	}
+
+	return false
 }
 
 func (st State) CheckIfEnemyShotPlayer() {
@@ -111,21 +129,19 @@ func (st State) MoveEnemies(screenWidth int) {
 	if float64(x0)*scaleX0 < 0 || float64(xRow)*xRowScaleX+float64(xRowWidth)*xRowScaleX > float64(screenWidth) {
 		ENEMY_MOVEMENT_DIRECTION *= -1
 		for i := 0; i < st.numEnemies; i++ {
-			_, scaleY := st.enemies[i].GetScaleXY()
 			st.enemies[i].OffsetXY(0, st.enemies[i].GetFrameHeight())
-
-			if int(float64(st.enemies[i].posY)*scaleY) > st.player.posY {
-				st.player.Die()
-			}
 		}
 	}
 
 	for i := 0; i < st.numEnemies; i++ {
-		st.enemies[i].OffsetXY(ENEMY_MOVEMENT_DIRECTION*2, 0)
+		st.enemies[i].OffsetXY(ENEMY_MOVEMENT_DIRECTION*ENEMY_SPEED, 0)
+
+		_, scaleY := st.enemies[i].GetScaleXY()
+
+		if st.enemies[i].IsAlive() && int(float64(st.enemies[i].posY)*scaleY) > st.player.posY {
+			st.player.Die()
+		}
 	}
-
-	//fmt.Println(st.enemies[0].posY)
-
 }
 
 func (st State) MovePlayer(x, y int) {
