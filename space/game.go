@@ -70,16 +70,16 @@ func (g *Game) Update() error {
 	if g.state.player.IsAlive() {
 		g.count++
 
+		g.state.CheckIfEnemyShotPlayer()
+
+		g.state.CheckIfPlayerShotEnemy()
+
 		if g.state.input.Update() {
 			g.state.PlayerShoot()
 			g.state.EnemyShoot(0)
 			g.state.EnemyShoot(9)
 			g.state.EnemyShoot(12)
 		}
-
-		g.state.CheckIfEnemyShotPlayer()
-
-		g.state.CheckIfPlayerShotEnemy()
 
 		dir, ok := g.state.input.Dir()
 

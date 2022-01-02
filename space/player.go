@@ -1,6 +1,8 @@
 package space
 
 import (
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -110,8 +112,8 @@ func (p Player) Draw(screen *ebiten.Image) {
 
 		op.GeoM.Reset()
 		if p.bullet.inAir {
-			p.offsetBulletXY(0, -3)
-			op.GeoM.Scale(0.25, 0.25)
+			p.offsetBulletXY(0, -6)
+			op.GeoM.Scale(p.scaleX, p.scaleY)
 			op.GeoM.Translate(float64(p.bullet.bulletPosX)*p.scaleX, float64(p.bullet.bulletPosY))
 			screen.DrawImage(p.bullet.img, op)
 
@@ -155,14 +157,18 @@ func (p *Player) Die() {
 func (p Player) BulletCollisionWithEnemy(en *Enemy) bool {
 	if p.bullet.inAir {
 		bulletX, bulletY := p.bullet.bulletPosX, p.bullet.bulletPosY
-		_, bulletScaleX := p.scaleX, p.scaleY
+		bulletScaleX, _ := p.scaleX, p.scaleY
 		enemyX, enemyY := en.GetEnemyXY()
 		enemyScaleX, enemyScaleY := en.GetScaleXY()
 		enemyWidth := en.GetFrameWidth()
 
-		if float64(bulletY) < float64(enemyY)*enemyScaleY {
+		if float64(bulletY) < float64(enemyY)*enemyScaleY &&
+			float64(bulletY) > float64(enemyY)*enemyScaleY-float64(en.GetFrameHeight())*enemyScaleY {
 			if float64(bulletX)*bulletScaleX > float64(enemyX)*enemyScaleX-10 &&
-				float64(bulletX)*bulletScaleX < float64(enemyX)*enemyScaleX+float64(enemyWidth)*enemyScaleX {
+				float64(bulletX)*bulletScaleX < float64(enemyX)*enemyScaleX+float64(enemyWidth)*enemyScaleX-10 {
+
+				fmt.Printf("bullet x, bullet y: %f, %f\n", float64(bulletX)*bulletScaleX, float64(bulletY))
+				fmt.Printf("enemy x, enemy y: %f, %f\n", float64(enemyX)*enemyScaleX, float64(enemyY)*enemyScaleY)
 				return true
 			}
 		}

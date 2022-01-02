@@ -109,11 +109,21 @@ func (st State) MoveEnemies(screenWidth int) {
 	xRowWidth := st.enemies[NUM_ENEMIES_ON_ROW-1].GetFrameWidth()
 	if float64(x0)*scaleX0 < 0 || float64(xRow)*xRowScaleX+float64(xRowWidth)*xRowScaleX > float64(screenWidth) {
 		ENEMY_MOVEMENT_DIRECTION *= -1
+		for i := 0; i < st.numEnemies; i++ {
+			_, scaleY := st.enemies[i].GetScaleXY()
+			st.enemies[i].OffsetXY(0, st.enemies[i].GetFrameHeight())
+
+			if int(float64(st.enemies[i].posY)*scaleY) > st.player.posY {
+				st.player.Die()
+			}
+		}
 	}
 
 	for i := 0; i < st.numEnemies; i++ {
 		st.enemies[i].OffsetXY(ENEMY_MOVEMENT_DIRECTION*2, 0)
 	}
+
+	//fmt.Println(st.enemies[0].posY)
 
 }
 
