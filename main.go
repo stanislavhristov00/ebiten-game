@@ -37,6 +37,12 @@ var (
 	enemies2                   []*space.Enemy
 )
 
+//TODO: Make enemies shoot randomly
+//TODO: Load the different kind of enemies
+//TODO: FIX UP THE CODE AND ADD COMMENTS :)
+//TODO: Find out how the double kills happen (maybe)
+//TODO: Implement the covers (if not too lazy)
+
 func main() {
 	src := getImage("resources/1.png")
 	spriteSheet = ebiten.NewImageFromImage(src)
@@ -61,7 +67,7 @@ func main() {
 	enemy5.LoadDeathFrame(deathImage)
 	enemies5 := LoadRowEnemies(enemy5, 5)
 
-	g := space.NewGame(55, screenWidth)
+	g := space.NewGame(55, screenWidth, "score.txt")
 
 	g.LoadEnemies(enemies, enemies2, enemies3, enemies4, enemies5)
 	g.LoadPlayer(player)
@@ -73,6 +79,10 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
+// func Init() *space.Game{
+	
+// }
 
 func getImage(filePath string) image.Image {
 	imgFile, err := os.Open(filePath)

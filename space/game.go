@@ -1,10 +1,14 @@
 package space
 
 import (
+	"errors"
 	"fmt"
 	"image/color"
 	"io/ioutil"
 	"log"
+	"os"
+	"strconv"
+	"syscall"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -30,9 +34,33 @@ type Game struct {
 	isGameOver         bool
 	score              int
 	highScore          int
+	scoreFile          string
 }
 
-func NewGame(numEnemies int, screenWidth int) *Game {
+func NewGame(numEnemies int, screenWidth int, scoreFile string) *Game {
+	fileStat, e := os.Stat(scoreFile)
+	var highScore int
+	var err2 error
+
+	if errors.Is(e, os.ErrNotExist) {
+		os.Create(scoreFile)
+		setHidden(scoreFile)
+		highScore = 0
+	} else if fileStat.Size() == 0 {
+		highScore = 0
+	} else {
+		content, err := ioutil.ReadFile(scoreFile)
+
+		if err == nil {
+			highScore, err2 = strconv.Atoi(string(content))
+			if err2 != nil {
+				highScore = 0
+			}
+		} else {
+			highScore = 0
+		}
+	}
+
 	return &Game{
 		count:              0,
 		screenWidth:        screenWidth,
@@ -41,7 +69,23 @@ func NewGame(numEnemies int, screenWidth int) *Game {
 		isOnStartingScreen: true,
 		isGameOver:         false,
 		score:              0,
-		highScore:          0,
+		highScore:          highScore,
+		scoreFile:          scoreFile,
+	}
+}
+
+func (g Game) WriteHighScore() {
+	f, err := os.OpenFile(g.scoreFile, os.O_WRONLY, 0644)
+
+	if err != nil {
+		fmt.Printf("Could not open file %s.", g.scoreFile)
+		return
+	}
+
+	_, err2 := f.WriteString(fmt.Sprintf("%d", g.highScore))
+
+	if err2 != nil {
+		fmt.Printf("Could not write to file %s.", g.scoreFile)
 	}
 }
 
@@ -106,10 +150,12 @@ func (g Game) drawText(screen *ebiten.Image) {
 	} else {
 		first := fmt.Sprintf("LIVES  %d", g.state.player.GetLives())
 		second := fmt.Sprintf("SCORE  %d", g.score)
+		third := fmt.Sprintf("HIGHSCORE  %d", g.highScore)
 
 		if g.fontSmall != nil {
 			text.Draw(screen, first, g.fontSmall, 10, 20, color.White)
-			text.Draw(screen, second, g.fontSmall, 120, 20, color.White)
+			text.Draw(screen, second, g.fontSmall, 200, 20, color.White)
+			text.Draw(screen, third, g.fontSmall, 400, 20, color.White)
 		}
 	}
 
@@ -207,6 +253,11 @@ func (g *Game) Restart() {
 		g.state.CopyEnemiesIntoState(g.stateCopy)
 		g.state.player.Revive()
 		g.state.SetEnemyMovementDirectionRight()
+		if g.score > g.highScore {
+			g.highScore = g.score
+			g.WriteHighScore()
+		}
+		g.score = 0
 		g.isGameOver = false
 	}
 }
@@ -215,4 +266,18 @@ func (g *Game) LoadNextWave(enemySpeed int) {
 	g.state.CopyEnemiesIntoState(g.stateCopy)
 	g.state.SetEnemyMovementDirectionRight()
 	g.state.IncreaseEnemyMovementSpeed(enemySpeed)
+}
+
+func setHidden(path string) error {
+	filenameW, err := syscall.UTF16PtrFromString(path)
+	if err != nil {
+		return err
+	}
+
+	err = syscall.SetFileAttributes(filenameW, syscall.FILE_ATTRIBUTE_HIDDEN)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
