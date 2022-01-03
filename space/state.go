@@ -2,6 +2,7 @@ package space
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -126,6 +127,7 @@ func (st State) MoveEnemies(screenWidth int) {
 	xRow, _ := st.enemies[NUM_ENEMIES_ON_ROW-1].GetEnemyXY()
 	xRowScaleX, _ := st.enemies[NUM_ENEMIES_ON_ROW-1].GetScaleXY()
 	xRowWidth := st.enemies[NUM_ENEMIES_ON_ROW-1].GetFrameWidth()
+
 	if float64(x0)*scaleX0 < 0 || float64(xRow)*xRowScaleX+float64(xRowWidth)*xRowScaleX > float64(screenWidth) {
 		ENEMY_MOVEMENT_DIRECTION *= -1
 		for i := 0; i < st.numEnemies; i++ {
@@ -144,7 +146,64 @@ func (st State) MoveEnemies(screenWidth int) {
 	}
 }
 
-func (st State) MovePlayer(x, y int) {
+func pickARandomNumberInRange(min, max int) int {
+	return rand.Intn(max-min) + min
+}
+
+func (st *State) EnemiesShoot() {
+
+	for i := 0; i < len(st.enemies); i++ {
+		if st.enemies[i].IsAlive() && st.enemies[i].IsBulletInAir() {
+			return
+		}
+	}
+
+	var numberOfEnemiesToShoot int
+	alive := make([]int, 0)
+
+	for i := 0; i < len(st.enemies); i++ {
+		if st.enemies[i].IsAlive() {
+			alive = append(alive, i)
+		}
+	}
+
+	if len(alive) == 0 {
+		return
+	}
+
+	if len(alive) <= 5 {
+		for i := 0; i < len(alive); i++ {
+			st.EnemyShoot(alive[i])
+		}
+		return
+	}
+
+	if len(alive) > 20 {
+		numberOfEnemiesToShoot = 5
+	} else {
+		numberOfEnemiesToShoot = 3
+	}
+
+	for i := 0; i < numberOfEnemiesToShoot; i++ {
+		index := pickARandomNumberInRange(0, len(alive)-1)
+
+		if st.enemies[index].IsBulletInAir() {
+			for st.enemies[index].IsBulletInAir() {
+				index = pickARandomNumberInRange(0, len(alive)-1)
+			}
+		}
+
+		st.EnemyShoot(index)
+	}
+}
+
+func (st State) MovePlayer(x, y, limit int) {
+	x1, _ := st.player.GetPlayerXY()
+	scaleX, _ := st.player.GetScaleXY()
+
+	if x1+x < 0 || int(float64(x1)*scaleX)+int(float64(st.player.GetFrameWidth())*scaleX)+x-5 > limit {
+		return
+	}
 	st.player.OffsetXY(x, y)
 }
 
@@ -154,7 +213,9 @@ func (st State) PlayerShoot() {
 
 func (st State) EnemyShoot(index int) {
 	if index < len(st.enemies) {
-		st.enemies[index].Shoot()
+		if st.enemies[index].IsAlive() {
+			st.enemies[index].Shoot()
+		}
 	} else {
 		fmt.Printf("Index out of bounds with index %d", index)
 	}
@@ -168,4 +229,8 @@ func (st *State) CopyEnemiesIntoState(state *State) {
 
 func (st State) SetEnemyMovementDirectionRight() {
 	ENEMY_MOVEMENT_DIRECTION *= -1
+}
+
+func (st State) ResetEnemyMovementSpeed() {
+	ENEMY_SPEED = 2
 }

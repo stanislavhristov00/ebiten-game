@@ -211,18 +211,20 @@ func (g *Game) Update() error {
 
 		if g.state.input.Update() {
 			g.state.PlayerShoot()
-			g.state.EnemyShoot(0)
-			g.state.EnemyShoot(9)
-			g.state.EnemyShoot(12)
+			// g.state.EnemyShoot(0)
+			// g.state.EnemyShoot(9)
+			// g.state.EnemyShoot(12)
 		}
 
 		dir, ok := g.state.input.Dir()
 
 		if ok {
-			g.state.MovePlayer(dir.DirToValue()*6, 0)
+			g.state.MovePlayer(dir.DirToValue()*6, 0, 640)
 		}
 
 		g.state.MoveEnemies(g.screenWidth)
+
+		g.state.EnemiesShoot()
 
 		if g.state.CheckIfAllEnemiesAreDead() {
 			g.LoadNextWave(1)
@@ -252,6 +254,7 @@ func (g *Game) Restart() {
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
 		g.state.CopyEnemiesIntoState(g.stateCopy)
 		g.state.player.Revive()
+		g.state.ResetEnemyMovementSpeed()
 		g.state.SetEnemyMovementDirectionRight()
 		if g.score > g.highScore {
 			g.highScore = g.score

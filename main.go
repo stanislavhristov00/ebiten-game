@@ -14,16 +14,12 @@ import (
 )
 
 const (
-	frameOX     = 0
-	frameOY     = 0
-	frameWidth  = 140
-	frameHeight = 120
-	frameNum    = 2
-
 	// There will be five rows in total but you can control the number of enemies.
 	ENEMIES_ON_ROW = 11
 	screenWidth    = 640
 	screenHeigth   = 480
+	ENEMY_SCALE_X  = 0.25
+	ENEMY_SCALE_Y  = 0.25
 )
 
 var (
@@ -59,20 +55,25 @@ func Init() *space.Game {
 	heroImage := spriteSheet.SubImage(image.Rect(130, 600, 220, 720)).(*ebiten.Image)
 	bulletImage = spriteSheet.SubImage(image.Rect(450, 360, 500, 480)).(*ebiten.Image)
 	deathImage := spriteSheet.SubImage(image.Rect(340, 600, 430, 720)).(*ebiten.Image)
+
 	player = space.NewPlayer(heroImage, bulletImage, 0, screenHeigth-90/3, 90, 90, 0.35, 0.35)
-	enemy = space.NewEnemy(spriteSheet, bulletImage, 260, 0, 135, 120, 2, 0, 0, 0.25, 0.25)
+	enemy = space.NewEnemy(spriteSheet, bulletImage, 260, 0, 135, 120, 2, 0, 0, ENEMY_SCALE_X, ENEMY_SCALE_Y)
 	enemy.LoadDeathFrame(deathImage)
 	enemies = LoadRowEnemies(enemy, 1)
-	enemy2 := space.NewEnemy(spriteSheet, bulletImage, 0, 0, 135, 120, 2, 0, 0, 0.25, 0.25)
+
+	enemy2 := space.NewEnemy(spriteSheet, bulletImage, 0, 0, 135, 120, 2, 0, 0, ENEMY_SCALE_X, ENEMY_SCALE_Y)
 	enemy2.LoadDeathFrame(deathImage)
 	enemies2 = LoadRowEnemies(enemy2, 2)
-	enemy3 := space.NewEnemy(spriteSheet, bulletImage, 0, 0, 135, 120, 2, 0, 0, 0.25, 0.25)
+
+	enemy3 := space.NewEnemy(spriteSheet, bulletImage, 0, 0, 135, 120, 2, 0, 0, ENEMY_SCALE_X, ENEMY_SCALE_Y)
 	enemy3.LoadDeathFrame(deathImage)
 	enemies3 := LoadRowEnemies(enemy3, 3)
-	enemy4 := space.NewEnemy(spriteSheet, bulletImage, 0, 120, 135, 120, 2, 0, 0, 0.25, 0.25)
+
+	enemy4 := space.NewEnemy(spriteSheet, bulletImage, 0, 120, 135, 120, 2, 0, 0, ENEMY_SCALE_X, ENEMY_SCALE_Y)
 	enemy4.LoadDeathFrame(deathImage)
 	enemies4 := LoadRowEnemies(enemy4, 4)
-	enemy5 := space.NewEnemy(spriteSheet, bulletImage, 0, 120, 135, 120, 2, 0, 0, 0.25, 0.25)
+
+	enemy5 := space.NewEnemy(spriteSheet, bulletImage, 0, 120, 135, 120, 2, 0, 0, ENEMY_SCALE_X, ENEMY_SCALE_Y)
 	enemy5.LoadDeathFrame(deathImage)
 	enemies5 := LoadRowEnemies(enemy5, 5)
 

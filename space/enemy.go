@@ -255,3 +255,7 @@ func (en *Enemy) SetDeathFrameDrawn(isSet bool) {
 func (en Enemy) GetDeathFrameDrawn() bool {
 	return en.deathFrameDrawn
 }
+
+func (en Enemy) IsBulletInAir() bool {
+	return en.bullet.inAir
+}
