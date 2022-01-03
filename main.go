@@ -38,12 +38,21 @@ var (
 )
 
 //TODO: Make enemies shoot randomly
-//TODO: Load the different kind of enemies
 //TODO: FIX UP THE CODE AND ADD COMMENTS :)
 //TODO: Find out how the double kills happen (maybe)
 //TODO: Implement the covers (if not too lazy)
 
 func main() {
+
+	g := Init()
+	ebiten.SetWindowSize(screenWidth, screenHeigth)
+	ebiten.SetWindowTitle("Animation (Ebiten Demo)")
+	if err := ebiten.RunGame(g); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Init() *space.Game {
 	src := getImage("resources/1.png")
 	spriteSheet = ebiten.NewImageFromImage(src)
 
@@ -51,13 +60,13 @@ func main() {
 	bulletImage = spriteSheet.SubImage(image.Rect(450, 360, 500, 480)).(*ebiten.Image)
 	deathImage := spriteSheet.SubImage(image.Rect(340, 600, 430, 720)).(*ebiten.Image)
 	player = space.NewPlayer(heroImage, bulletImage, 0, screenHeigth-90/3, 90, 90, 0.35, 0.35)
-	enemy = space.NewEnemy(spriteSheet, bulletImage, 0, 0, 135, 120, 2, 0, 0, 0.25, 0.25)
+	enemy = space.NewEnemy(spriteSheet, bulletImage, 260, 0, 135, 120, 2, 0, 0, 0.25, 0.25)
 	enemy.LoadDeathFrame(deathImage)
-	enemy2 := space.NewEnemy(spriteSheet, bulletImage, 0, 120, 135, 120, 2, 0, 0, 0.25, 0.25)
-	enemy2.LoadDeathFrame(deathImage)
 	enemies = LoadRowEnemies(enemy, 1)
+	enemy2 := space.NewEnemy(spriteSheet, bulletImage, 0, 0, 135, 120, 2, 0, 0, 0.25, 0.25)
+	enemy2.LoadDeathFrame(deathImage)
 	enemies2 = LoadRowEnemies(enemy2, 2)
-	enemy3 := space.NewEnemy(spriteSheet, bulletImage, 0, 120, 135, 120, 2, 0, 0, 0.25, 0.25)
+	enemy3 := space.NewEnemy(spriteSheet, bulletImage, 0, 0, 135, 120, 2, 0, 0, 0.25, 0.25)
 	enemy3.LoadDeathFrame(deathImage)
 	enemies3 := LoadRowEnemies(enemy3, 3)
 	enemy4 := space.NewEnemy(spriteSheet, bulletImage, 0, 120, 135, 120, 2, 0, 0, 0.25, 0.25)
@@ -73,16 +82,8 @@ func main() {
 	g.LoadPlayer(player)
 	g.InitFont("resources/font/font.ttf")
 
-	ebiten.SetWindowSize(screenWidth, screenHeigth)
-	ebiten.SetWindowTitle("Animation (Ebiten Demo)")
-	if err := ebiten.RunGame(g); err != nil {
-		log.Fatal(err)
-	}
+	return g
 }
-
-// func Init() *space.Game{
-	
-// }
 
 func getImage(filePath string) image.Image {
 	imgFile, err := os.Open(filePath)
