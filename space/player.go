@@ -145,12 +145,16 @@ func (p *Player) DieDraw(screen *ebiten.Image) {
 }
 
 /*
- * Change the state of a plyaer to dead.
+ *	Change the state of a plyaer to dead.
  */
 
 func (p *Player) Die() {
 	p.isAlive = false
 }
+
+/*
+ *	Check if player's bullet collides with given enemy.
+ */
 
 func (p Player) BulletCollisionWithEnemy(en *Enemy) bool {
 	if p.bullet.inAir {

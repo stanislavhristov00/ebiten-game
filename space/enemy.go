@@ -94,7 +94,7 @@ func (en Enemy) Draw(screen *ebiten.Image, count int) {
 		en.bulletOffsetXY(0, 3)
 		op.GeoM.Scale(en.scaleX, en.scaleY)
 		/*
-		* Again taking into consideration the scale of the bullet, when translating on offsets
+		 * Taking into consideration the scale of the bullet, when translating on offsets
 		 */
 		op.GeoM.Translate(float64(en.bullet.bulletPosX)*en.scaleX, float64(en.bullet.bulletPosY)*en.scaleY)
 		screen.DrawImage(en.bullet.img, op)
@@ -125,7 +125,7 @@ func (en Enemy) Draw(screen *ebiten.Image, count int) {
 }
 
 /*
- *	Offset X, Y for the enemy bullet.
+ *	Offsets x, y for the enemy bullet.
  */
 
 func (en *Enemy) bulletOffsetXY(x, y int) {
@@ -134,7 +134,7 @@ func (en *Enemy) bulletOffsetXY(x, y int) {
 }
 
 /*
- *	Offset X, Y of the enemy.
+ *	Offsets x, y of the enemy.
  */
 
 func (en *Enemy) OffsetXY(x, y int) {

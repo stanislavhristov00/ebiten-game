@@ -33,13 +33,11 @@ var (
 	enemies2                   []*space.Enemy
 )
 
-//TODO: Make enemies shoot randomly
 //TODO: FIX UP THE CODE AND ADD COMMENTS :)
 //TODO: Find out how the double kills happen (maybe)
 //TODO: Implement the covers (if not too lazy)
 
 func main() {
-
 	g := Init()
 	ebiten.SetWindowSize(screenWidth, screenHeigth)
 	ebiten.SetWindowTitle("Animation (Ebiten Demo)")

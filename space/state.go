@@ -27,6 +27,10 @@ type State struct {
 	numEnemies int
 }
 
+/*
+ *	Creates a state object.
+ */
+
 func NewState(numEnemies int) *State {
 	state := &State{
 		enemies:    make([]*Enemy, 0),
@@ -38,35 +42,46 @@ func NewState(numEnemies int) *State {
 	return state
 }
 
+/*
+ *	Load enemies into state.
+ */
 func (st *State) LoadEnemies(enemies []*Enemy) {
-	// 	if len(st.enemies)+len(enemies) <= st.numEnemies {
-	// 		for i := 0; i < len(enemies); i++ {
-	// 			st.enemies = append(st.enemies, enemies[i])
-	// 		}
-	// 	} else {
-	// 		fmt.Printf("Cannot load enemies. Exceeding capacity of NUM_ENEMIES: %d\n", st.numEnemies)
-	// 	}
-	// }
 	for i := 0; i < len(enemies); i++ {
 		st.enemies = append(st.enemies, enemies[i])
 	}
 }
 
+/*
+ *	Load player into state.
+ */
+
 func (st *State) LoadPlayer(player *Player) {
 	st.player = player
 }
+
+/*
+ *	Used to check for player input about direction.
+ */
 
 func (st State) UpdateDirMovement() (Dir, bool) {
 	return st.input.Dir()
 }
 
+/*
+ *	Used to check for player input about shooting.
+ */
+
 func (st State) UpdateShoot() bool {
 	return st.input.Update()
 }
 
+/*
+ *	Draw the enemies onto the screen passed. Count argument is used
+ *	for animation.
+ */
+
 func (st State) DrawEnemies(screen *ebiten.Image, count int) {
 	for i := 0; i < len(st.enemies); i++ {
-		// if st.enemies[i].IsAlive() {
 		st.enemies[i].Draw(screen, count)
 
 		if !st.enemies[i].IsAlive() && !st.enemies[i].GetDeathFrameDrawn() {
@@ -75,6 +90,10 @@ func (st State) DrawEnemies(screen *ebiten.Image, count int) {
 		}
 	}
 }
+
+/*
+ *	Returns true if all current enemies are dead, false otherwise.
+ */
 
 func (st State) CheckIfAllEnemiesAreDead() bool {
 	for i := 0; i < len(st.enemies); i++ {
@@ -86,9 +105,9 @@ func (st State) CheckIfAllEnemiesAreDead() bool {
 	return true
 }
 
-func (st *State) IncreaseEnemyMovementSpeed(amount int) {
-	ENEMY_SPEED += amount
-}
+/*
+ *	Draw the player on the screen passed.
+ */
 
 func (st State) DrawPlayer(screen *ebiten.Image) {
 	if st.player.IsAlive() {
@@ -97,6 +116,10 @@ func (st State) DrawPlayer(screen *ebiten.Image) {
 		st.player.DieDraw(screen)
 	}
 }
+
+/*
+ *	Returns true if the player's bullet has collided with any of the enemies, false otherwise.
+ */
 
 func (st State) CheckIfPlayerShotEnemy() bool {
 	for i := 0; i < len(st.enemies); i++ {
@@ -112,6 +135,10 @@ func (st State) CheckIfPlayerShotEnemy() bool {
 	return false
 }
 
+/*
+ *	Returns true if any of the enemies' bullets has collided with the player, false otherwise.
+ */
+
 func (st State) CheckIfEnemyShotPlayer() {
 	for i := 0; i < len(st.enemies); i++ {
 		if st.enemies[i].BulletCollisionWithPlayer(st.player) {
@@ -121,6 +148,11 @@ func (st State) CheckIfEnemyShotPlayer() {
 	}
 }
 
+/*
+ *	Moves the enemies horizontally and vertically. Also checks if any of the enemies
+ *	collide with the player. If so, the player's state is set to dead.
+ */
+
 func (st State) MoveEnemies(screenWidth int) {
 	x0, _ := st.enemies[0].GetEnemyXY()
 	scaleX0, _ := st.enemies[0].GetScaleXY()
@@ -128,6 +160,10 @@ func (st State) MoveEnemies(screenWidth int) {
 	xRowScaleX, _ := st.enemies[NUM_ENEMIES_ON_ROW-1].GetScaleXY()
 	xRowWidth := st.enemies[NUM_ENEMIES_ON_ROW-1].GetFrameWidth()
 
+	/*
+	 *	Change direction if any of the enemies have reached the end.
+	 *	Also move each enemy one row down.
+	 */
 	if float64(x0)*scaleX0 < 0 || float64(xRow)*xRowScaleX+float64(xRowWidth)*xRowScaleX > float64(screenWidth) {
 		ENEMY_MOVEMENT_DIRECTION *= -1
 		for i := 0; i < st.numEnemies; i++ {
@@ -146,9 +182,10 @@ func (st State) MoveEnemies(screenWidth int) {
 	}
 }
 
-func pickARandomNumberInRange(min, max int) int {
-	return rand.Intn(max-min) + min
-}
+/*
+ *	Makes random enemies shoot. Number of shooting enemies is dependent on
+ *	amount of currently alive enemies.
+ */
 
 func (st *State) EnemiesShoot() {
 
@@ -197,6 +234,10 @@ func (st *State) EnemiesShoot() {
 	}
 }
 
+/*
+ *	Move player horizontally.
+ */
+
 func (st State) MovePlayer(x, y, limit int) {
 	x1, _ := st.player.GetPlayerXY()
 	scaleX, _ := st.player.GetScaleXY()
@@ -205,6 +246,16 @@ func (st State) MovePlayer(x, y, limit int) {
 		return
 	}
 	st.player.OffsetXY(x, y)
+}
+
+/*
+ *	Copy passed state's enemies slice into current state's enemies slice.
+ */
+
+func (st *State) CopyEnemiesIntoState(state *State) {
+	for i := 0; i < len(state.enemies); i++ {
+		*st.enemies[i] = *state.enemies[i]
+	}
 }
 
 func (st State) PlayerShoot() {
@@ -221,16 +272,18 @@ func (st State) EnemyShoot(index int) {
 	}
 }
 
-func (st *State) CopyEnemiesIntoState(state *State) {
-	for i := 0; i < len(state.enemies); i++ {
-		*st.enemies[i] = *state.enemies[i]
-	}
-}
-
 func (st State) SetEnemyMovementDirectionRight() {
 	ENEMY_MOVEMENT_DIRECTION *= -1
 }
 
 func (st State) ResetEnemyMovementSpeed() {
 	ENEMY_SPEED = 2
+}
+
+func (st *State) IncreaseEnemyMovementSpeed(amount int) {
+	ENEMY_SPEED += amount
+}
+
+func pickARandomNumberInRange(min, max int) int {
+	return rand.Intn(max-min) + min
 }

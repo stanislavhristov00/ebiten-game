@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"syscall"
 
@@ -21,6 +22,10 @@ import (
 const (
 	dpi = 72
 )
+
+/*
+ *	Struct that represents the game.
+ */
 
 type Game struct {
 	count              int
@@ -37,14 +42,28 @@ type Game struct {
 	scoreFile          string
 }
 
+/*
+ *	Create a new game.
+ */
+
 func NewGame(numEnemies int, screenWidth int, scoreFile string) *Game {
 	fileStat, e := os.Stat(scoreFile)
 	var highScore int
 	var err2 error
 
+	/*
+	 *	High score is kept in a file. First check if file already exists.
+	 *	If file exists, load the highscore from there, otherwise create a new file.
+	 */
 	if errors.Is(e, os.ErrNotExist) {
 		os.Create(scoreFile)
-		setHidden(scoreFile)
+		/*
+		 *	setHidden function is platform specific. Check if
+		 *	OS is windows before using it.
+		 */
+		if runtime.GOOS == "windows" {
+			setHidden(scoreFile)
+		}
 		highScore = 0
 	} else if fileStat.Size() == 0 {
 		highScore = 0
@@ -74,6 +93,10 @@ func NewGame(numEnemies int, screenWidth int, scoreFile string) *Game {
 	}
 }
 
+/*
+ *	Writes a new highscore to the file.
+ */
+
 func (g Game) WriteHighScore() {
 	f, err := os.OpenFile(g.scoreFile, os.O_WRONLY, 0644)
 
@@ -88,6 +111,12 @@ func (g Game) WriteHighScore() {
 		fmt.Printf("Could not write to file %s.", g.scoreFile)
 	}
 }
+
+/*
+ *	Initialize the font for text in game.
+ *	This function initializes three types of fonts: small, medium and big.
+ *	The font must be a .ttf file that can be read properly by opentype.
+ */
 
 func (g *Game) InitFont(fileName string) {
 	bytes, e := ioutil.ReadFile(fileName)
@@ -134,6 +163,10 @@ func (g *Game) InitFont(fileName string) {
 
 }
 
+/*
+ *	Draws different text depending on the state of the game.
+ */
+
 func (g Game) drawText(screen *ebiten.Image) {
 	if g.isOnStartingScreen {
 		if g.fontMedium != nil && g.fontBig != nil {
@@ -160,6 +193,11 @@ func (g Game) drawText(screen *ebiten.Image) {
 	}
 
 }
+
+/*
+ *	Initialize the enemies. A separate copy of every enemy is loaded
+ *	with its beginning state, as to restart the game at game over.
+ */
 
 func (g *Game) LoadEnemies(enemies []*Enemy, enemies2 []*Enemy, enemies3 []*Enemy, enemies4 []*Enemy, enemies5 []*Enemy) {
 	g.state.LoadEnemies(enemies)
@@ -190,9 +228,17 @@ func (g *Game) LoadEnemies(enemies []*Enemy, enemies2 []*Enemy, enemies3 []*Enem
 
 }
 
+/*
+ *	Load a player object into the game.
+ */
+
 func (g *Game) LoadPlayer(player *Player) {
 	g.state.LoadPlayer(player)
 }
+
+/*
+ *	Ebiten Game struct's interface function. Is used to update the state of the game.
+ */
 
 func (g *Game) Update() error {
 	if g.isOnStartingScreen {
@@ -211,9 +257,6 @@ func (g *Game) Update() error {
 
 		if g.state.input.Update() {
 			g.state.PlayerShoot()
-			// g.state.EnemyShoot(0)
-			// g.state.EnemyShoot(9)
-			// g.state.EnemyShoot(12)
 		}
 
 		dir, ok := g.state.input.Dir()
@@ -237,6 +280,10 @@ func (g *Game) Update() error {
 	return nil
 }
 
+/*
+ *	Ebiten Game struct's interface function. Used to draw on the screen.
+ */
+
 func (g *Game) Draw(screen *ebiten.Image) {
 	g.drawText(screen)
 
@@ -246,9 +293,17 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 }
 
+/*
+ *	Ebiten Game struct's interface function. Returns the size of the screen.
+ */
+
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
+
+/*
+ *	Restart the game state.
+ */
 
 func (g *Game) Restart() {
 	if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
@@ -265,11 +320,18 @@ func (g *Game) Restart() {
 	}
 }
 
+/*
+ *	Load a new wave of enemies. Increase speed.
+ */
 func (g *Game) LoadNextWave(enemySpeed int) {
 	g.state.CopyEnemiesIntoState(g.stateCopy)
 	g.state.SetEnemyMovementDirectionRight()
 	g.state.IncreaseEnemyMovementSpeed(enemySpeed)
 }
+
+/*
+ *	Make a file hidden. Windows specific. Will not work on other OS.
+ */
 
 func setHidden(path string) error {
 	filenameW, err := syscall.UTF16PtrFromString(path)
